@@ -2,11 +2,19 @@ using ApiReservasStyle.Middleware;
 using Aplicacion_ReservasStyle.Services;
 using Infraestructura_ReservasStyle.Data;
 using Infraestructura_ReservasStyle.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// PORT 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 
 // Controllers
 builder.Services.AddControllers()
@@ -19,6 +27,24 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+        )
+    };
+});
 
 // RATE LIMITING
 builder.Services.AddRateLimiter(options =>
@@ -27,6 +53,18 @@ builder.Services.AddRateLimiter(options =>
     {
         opt.PermitLimit = 5;
         opt.Window = TimeSpan.FromSeconds(10);
+    });
+});
+
+
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -40,7 +78,6 @@ builder.Services.AddScoped<ServicioSucursalService>();
 builder.Services.AddScoped<CitaService>();
 builder.Services.AddScoped<PagoService>();
 builder.Services.AddScoped<ComprobanteService>();
-builder.Services.AddScoped<CitaService>();
 builder.Services.AddScoped<PromocionService>();
 builder.Services.AddScoped<NotificacionService>();
 builder.Services.AddScoped<PromocionServicioService>();
@@ -63,7 +100,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
+
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.UseMiddleware<LogMiddleware>();
 
