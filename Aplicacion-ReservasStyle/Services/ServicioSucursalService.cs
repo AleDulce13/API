@@ -1,6 +1,8 @@
 ﻿using Aplicacion_ReservasStyle.DTOs;
 using Dominio_ReservasStyle.Entities;
+using Infraestructura_ReservasStyle.Data;
 using Infraestructura_ReservasStyle.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +15,12 @@ namespace Aplicacion_ReservasStyle.Services
     {
         private readonly IGenericRepository<ServicioSucursal> _repo;
         private readonly LogService _logService;
+        private readonly AppDbContext _context;
 
-        public ServicioSucursalService(IGenericRepository<ServicioSucursal> repo, LogService logService)
+        public ServicioSucursalService(IGenericRepository<ServicioSucursal> repo, AppDbContext context, LogService logService)
         {
             _repo = repo;
+            _context = context;
             _logService = logService;
         }
 
@@ -32,9 +36,43 @@ namespace Aplicacion_ReservasStyle.Services
             return await _repo.GetById(id);
         }
 
+        //public async Task<List<ServicioAdminDTO>> ObtenerServiciosAdmin(string userId)
+        //{
+        //    // Obtener el usuario
+        //    var usuario = await _context.Usuarios
+        //        .FirstOrDefaultAsync(u => u.IdUsuario.ToString() == userId);
+
+        //    if (usuario == null)
+        //        return new List<ServicioAdminDTO>();
+
+        //    var servicios = await (
+        //        from ss in _context.ServicioSucursal
+        //        join s in _context.Servicios on ss.IdServicio equals s.IdServicio
+        //        join suc in _context.Sucursales on ss.IdSucursal equals suc.IdSucursal
+        //        join h in _context.HorarioLocal on suc.IdSucursal equals h.IdSucursal
+        //        where ss.IdSucursal == usuario.IdSucursal 
+        //        select new ServicioAdminDTO
+        //        {
+        //            NombreServicio = s.Nombre,
+        //            NombreSucursal = suc.Nombre,
+        //            Direccion = suc.Direccion,
+        //            Precio = ss.Precio,
+        //            HoraApertura = h.HoraApertura,
+        //            HoraCierre = h.HoraCierre,
+        //            Imagen = s.Imagen
+        //        }
+        //    ).ToListAsync();
+
+        //    return servicios;
+        //}
+
         // CREATE
         public async Task Add(ServicioSucursalDTO dto)
         {
+
+            if (dto.IdServicio == 0 || dto.IdSucursal == 0)
+                throw new Exception("Servicio o Sucursal inválidos");
+
             var data = new ServicioSucursal
             {
                 IdServicio = dto.IdServicio,
@@ -42,6 +80,10 @@ namespace Aplicacion_ReservasStyle.Services
                 Precio = dto.Precio,
                 Estado = dto.Estado
             };
+
+            _context.ServicioSucursal.Add(data);
+            await _context.SaveChangesAsync();
+
 
             await _repo.Add(data);
 

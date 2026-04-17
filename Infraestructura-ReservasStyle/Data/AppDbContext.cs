@@ -104,7 +104,27 @@ namespace Infraestructura_ReservasStyle.Data
             {
                 entity.ToTable("Servicios");
 
-                entity.HasKey(x => x.IdServicio);
+                entity.HasKey(e => e.IdServicio);
+
+                entity.Property(e => e.IdServicio)
+                    .HasColumnName("IdServicio"); 
+
+                entity.Property(e => e.Nombre)
+                    .HasColumnName("Nombre")
+                    .HasMaxLength(150)
+                    .IsRequired();
+
+                entity.Property(e => e.Descripcion)
+                    .HasColumnName("Descripcion");
+
+                entity.Property(e => e.DuracionMinutos)
+                    .HasColumnName("DuracionMinutos");
+
+                entity.Property(e => e.ImagenUrl)
+                    .HasColumnName("Imagen");
+
+                entity.Property(e => e.Estado)
+                    .HasColumnName("Estado");
             });
 
             modelBuilder.Entity<ServicioSucursal>(entity =>

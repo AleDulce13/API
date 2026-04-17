@@ -19,9 +19,16 @@ namespace ApiReservasStyle.Middleware
             var stopwatch = Stopwatch.StartNew();
 
             var request = context.Request;
-
             var path = request.Path.ToString();
             var method = request.Method;
+
+            // 🔥 PERMITIR REGISTER Y LOGIN SIN VALIDACIONES
+            if (path.StartsWith("/api/Auth/register") ||
+                path.StartsWith("/api/Auth/login"))
+            {
+                await _next(context);
+                return;
+            }
 
             // Obtener usuario desde JWT
             var userIdClaim =
@@ -40,12 +47,8 @@ namespace ApiReservasStyle.Middleware
 
             var statusCode = context.Response.StatusCode;
 
-            // Ignorar Swagger (opcional)
+            // Ignorar Swagger
             if (path.StartsWith("/swagger"))
-                return;
-
-            // Ignorar endpoints sensibles si quieres
-            if (path.Contains("login") || path.Contains("register"))
                 return;
 
             // Guardar log
@@ -60,4 +63,5 @@ namespace ApiReservasStyle.Middleware
             });
         }
     }
+    
 }

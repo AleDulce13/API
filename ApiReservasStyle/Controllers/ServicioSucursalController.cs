@@ -38,8 +38,15 @@ namespace ApiReservasStyle.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ServicioSucursalDTO dto)
         {
-            await _service.Add(dto);
-            return Ok("Registro creado");
+            try
+            {
+                await _service.Add(dto);
+                return Ok("OK");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         // UPDATE

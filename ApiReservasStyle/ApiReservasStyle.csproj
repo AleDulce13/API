@@ -25,4 +25,8 @@
     <ProjectReference Include="..\Infraestructura-ReservasStyle\Infraestructura-ReservasStyle.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wroot\images\" />
+  </ItemGroup>
+
 </Project>

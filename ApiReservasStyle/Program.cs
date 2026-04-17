@@ -12,8 +12,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 var builder = WebApplication.CreateBuilder(args);
 
 // PORT 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+//builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 
 // Controllers
@@ -81,7 +81,8 @@ builder.Services.AddScoped<ComprobanteService>();
 builder.Services.AddScoped<PromocionService>();
 builder.Services.AddScoped<NotificacionService>();
 builder.Services.AddScoped<PromocionServicioService>();
-builder.Services.AddScoped<LogService>(); 
+builder.Services.AddScoped<LogService>();
+builder.Services.AddScoped<ServicioService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 // DbContext
@@ -90,7 +91,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
@@ -102,13 +102,11 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
-app.UseAuthentication();
-
-app.UseAuthorization();
+app.UseStaticFiles();
 
 app.UseRateLimiter();
 
-app.UseMiddleware<LogMiddleware>();
+//app.UseMiddleware<LogMiddleware>();
 
 app.MapControllers();
 

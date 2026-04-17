@@ -11,12 +11,12 @@ namespace Dominio_ReservasStyle.Entities
     {
         public int IdServicio { get; set; }
         public string Nombre { get; set; }
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
         public int DuracionMinutos { get; set; }
-        public string Imagen { get; set; }
+        public string ImagenUrl { get; set; }
         public bool Estado { get; set; }
 
-        public ICollection<ServicioSucursal> ServicioSucursales { get; set; }
+        public ICollection<ServicioSucursal> ServicioSucursales { get; set; } = new List<ServicioSucursal>();
 
     }
 }

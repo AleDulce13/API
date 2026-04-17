@@ -17,7 +17,7 @@ namespace Dominio_ReservasStyle.Entities
         public TimeSpan HoraInicio { get; set; }
         public TimeSpan HoraFin { get; set; }
 
-        public string Estado { get; set; }
+        public string? Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
     }
 }

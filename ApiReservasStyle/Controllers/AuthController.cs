@@ -1,5 +1,6 @@
 ﻿using Aplicacion_ReservasStyle.DTOs;
 using Aplicacion_ReservasStyle.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -30,13 +31,14 @@ namespace ApiReservasStyle.Controllers
 
 
         // REGISTRO
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDTO dto)
         {
             try
             {
                 await _auth.Register(dto);
-                return Ok("Usuario registrado");
+                return Ok(new { message = "Usuario registrado" });
             }
             catch (Exception ex)
             {
@@ -46,6 +48,7 @@ namespace ApiReservasStyle.Controllers
 
         // LOGIN
         [EnableRateLimiting("loginPolicy")]
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO dto)
         {
