@@ -1,6 +1,9 @@
 ﻿using Aplicacion_ReservasStyle.DTOs;
 using Aplicacion_ReservasStyle.Services;
+using Dominio_ReservasStyle.Entities;
+using Infraestructura_ReservasStyle.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiReservasStyle.Controllers
 {
@@ -9,10 +12,12 @@ namespace ApiReservasStyle.Controllers
     public class SucursalController : ControllerBase
     {
         private readonly SucursalService _service;
+        private readonly AppDbContext _context;
 
-        public SucursalController(SucursalService service)
+        public SucursalController(SucursalService service, AppDbContext context)
         {
             _service = service;
+            _context = context;
         }
 
         // GET ALL
@@ -35,11 +40,49 @@ namespace ApiReservasStyle.Controllers
         }
 
         // CREATE
-        [HttpPost]
-        public async Task<IActionResult> Add(SucursalDTO dto)
+        [HttpPost("crear-completo")]
+        public async Task<IActionResult> CrearCompleto(RegistrarSucursal dto)
         {
-            await _service.Add(dto);
-            return Ok("Sucursal creada");
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1️⃣ Crear sucursal
+                var sucursal = new Sucursal
+                {
+                    Nombre = dto.Nombre,
+                    Direccion = dto.Direccion,
+                    Ciudad = dto.Ciudad,
+                    Estado = dto.Estado,
+                    CodigoPostal = dto.CodigoPostal,
+                    Telefono = dto.Telefono,
+                    EstadoActivo = dto.EstadoActivo
+                };
+
+                _context.Sucursales.Add(sucursal);
+                await _context.SaveChangesAsync();
+
+                var horarios = dto.Horarios.Select(h => new HorarioLocal
+                {
+                    IdSucursal = sucursal.IdSucursal,
+                    DiaSemana = h.DiaSemana,
+                    HoraApertura = TimeSpan.Parse(h.HoraApertura),
+                    HoraCierre = TimeSpan.Parse(h.HoraCierre),
+                    Estado = h.Estado
+                }).ToList();
+
+                _context.HorarioLocal.AddRange(horarios);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return Ok(new { message = "Todo guardado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(ex.Message);
+            }
         }
 
         // UPDATE
