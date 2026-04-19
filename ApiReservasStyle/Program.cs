@@ -1,5 +1,6 @@
 using ApiReservasStyle.Middleware;
 using Aplicacion_ReservasStyle.Services;
+using Dominio_ReservasStyle.Entities;
 using Infraestructura_ReservasStyle.Data;
 using Infraestructura_ReservasStyle.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -111,14 +112,26 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => "API funcionando en Render");
-
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // MIGRACIONES
     db.Database.Migrate();
+
+    // ROLES 
+    if (!db.Roles.Any())
+    {
+        db.Roles.AddRange(
+            new Rol { NombreRol = "Admin" },
+            new Rol { NombreRol = "Cliente" },
+            new Rol { NombreRol = "Empleado" }
+        );
+
+        db.SaveChanges();
+    }
 }
 
 app.Run();
