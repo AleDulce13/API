@@ -91,6 +91,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
+app.UseDeveloperExceptionPage();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

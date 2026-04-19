@@ -24,8 +24,19 @@ namespace ApiReservasStyle.Controllers
         [HttpGet("usuarios")]
         public async Task<IActionResult> GetUsuarios()
         {
-            var usuarios = await _auth.GetUsuarios();
-            return Ok(usuarios);
+            try
+            {
+                var usuarios = await _auth.GetUsuarios();
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = ex.Message,
+                    detalle = ex.InnerException?.Message
+                });
+            }
         }
 
 
