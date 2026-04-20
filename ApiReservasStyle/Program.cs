@@ -74,6 +74,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ),
         ClockSkew = TimeSpan.Zero
     };
+
+    // AQUÍ ES DONDE VA EL DEBUG
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("JWT FAILED:");
+            Console.WriteLine(context.Exception.Message);
+            return Task.CompletedTask;
+        },
+
+        OnChallenge = context =>
+        {
+            Console.WriteLine("JWT CHALLENGE (401)");
+            Console.WriteLine("Error: " + context.Error);
+            Console.WriteLine("Description: " + context.ErrorDescription);
+            return Task.CompletedTask;
+        },
+
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("TOKEN VALID");
+            Console.WriteLine("User authenticated: " +
+                context.Principal.Identity?.IsAuthenticated);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -105,8 +132,18 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<ServicioService>();
+builder.Services.AddScoped<SucursalService>();
+builder.Services.AddScoped<HorarioLocalService>();
+builder.Services.AddScoped<EmpleadoService>();
+builder.Services.AddScoped<ServicioSucursalService>();
+builder.Services.AddScoped<CitaService>();
+builder.Services.AddScoped<PagoService>();
+builder.Services.AddScoped<ComprobanteService>();
+builder.Services.AddScoped<PromocionService>();
+builder.Services.AddScoped<NotificacionService>();
+builder.Services.AddScoped<PromocionServicioService>();
 builder.Services.AddScoped<LogService>();
+builder.Services.AddScoped<ServicioService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 // DB
@@ -124,6 +161,25 @@ app.UseSwaggerUI(c =>
 {
     c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
+
+// AQUÍ VA TU DEBUG 
+app.Use(async (context, next) =>
+{
+    var auth = context.Request.Headers["Authorization"].ToString();
+
+    if (!string.IsNullOrEmpty(auth))
+    {
+        Console.WriteLine("?? AUTH HEADER:");
+        Console.WriteLine(auth);
+    }
+    else
+    {
+        Console.WriteLine("? NO AUTH HEADER");
+    }
+
+    await next();
+});
+
 
 app.UseCors("AllowAll");
 
