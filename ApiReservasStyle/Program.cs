@@ -104,7 +104,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         OnTokenValidated = context =>
         {
-            Console.WriteLine("? TOKEN OK");
+            Console.WriteLine(" TOKEN OK");
             return Task.CompletedTask;
         }
     };
@@ -172,9 +172,9 @@ app.Use(async (context, next) =>
     Console.WriteLine("?? " + context.Request.Path);
 
     if (string.IsNullOrWhiteSpace(auth))
-        Console.WriteLine("? NO AUTH HEADER");
+        Console.WriteLine("NO AUTH HEADER");
     else
-        Console.WriteLine("?? AUTH => " + auth);
+        Console.WriteLine(" AUTH => " + auth);
 
     await next();
 });
@@ -194,17 +194,17 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    //db.Database.Migrate();
 
-    if (!db.Roles.Any())
-    {
-        db.Roles.AddRange(
-            new Rol { NombreRol = "Admin" },
-            new Rol { NombreRol = "Cliente" },
-            new Rol { NombreRol = "Empleado" }
-        );
-        db.SaveChanges();
-    }
+    //if (!db.Roles.Any())
+    //{
+    //    db.Roles.AddRange(
+    //        new Rol { NombreRol = "Admin" },
+    //        new Rol { NombreRol = "Cliente" },
+    //        new Rol { NombreRol = "Empleado" }
+    //    );
+    //    db.SaveChanges();
+    //}
 }
 
 app.Run();
