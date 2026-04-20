@@ -47,7 +47,7 @@ namespace ApiReservasStyle.Controllers
 
             try
             {
-                // 1️⃣ Crear sucursal
+                //  Crear sucursal
                 var sucursal = new Sucursal
                 {
                     Nombre = dto.Nombre,

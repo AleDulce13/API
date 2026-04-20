@@ -33,14 +33,6 @@ namespace ApiReservasStyle.Controllers
 
             return Ok(log);
         }
-
-        // POST
-        [HttpPost]
-        public async Task<IActionResult> Post(LogDTO dto)
-        {
-            var result = await _service.Crear(dto);
-            return Ok(result);
-        }
     }
     
 }

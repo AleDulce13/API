@@ -24,21 +24,6 @@ namespace ApiReservasStyle.Controllers
             _env = env;
         }
 
-        // AQUÍ LO PONES (TEMPORAL PARA DEBUG)
-        [HttpPost("test-auth")]
-        public IActionResult Test()
-        {
-            var auth = Request.Headers["Authorization"].ToString();
-
-            return Ok(new
-            {
-                auth,
-                message = string.IsNullOrEmpty(auth)
-                    ? "NO LLEGA TOKEN"
-                    : "SI LLEGA TOKEN"
-            });
-        }
-
         // GET ALL
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -136,22 +121,6 @@ namespace ApiReservasStyle.Controllers
 
             return Ok(servicio);
         }
-
-
-
-
-        // CREATE
-        ////[HttpPost]
-        ////public async Task<IActionResult> Add([FromBody] ServicioDTO dto)
-        ////{
-        ////    var servicio = await _service.Add(dto);
-
-        ////    return Ok(new
-        ////    {
-        ////        idServicio = servicio.IdServicio,
-        ////        imagenUrl = servicio.ImagenUrl
-        ////    });
-        ////}
 
         // UPDATE
         [HttpPut("{id}")]
