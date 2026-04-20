@@ -37,6 +37,8 @@ namespace ApiReservasStyle.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var servicio = await _context.Servicios
+                .Include(s => s.ServicioSucursales)
+                    .ThenInclude(ss => ss.Sucursal)
                 .FirstOrDefaultAsync(s => s.IdServicio == id);
 
             if (servicio == null)
@@ -45,6 +47,8 @@ namespace ApiReservasStyle.Controllers
             return Ok(servicio);
         }
 
+        // DETALLE
+
         [HttpGet("detalle")]
         public async Task<IActionResult> GetServiciosDetalle()
         {
@@ -52,7 +56,7 @@ namespace ApiReservasStyle.Controllers
             return Ok(data);
         }
 
-
+        // CREAR SERVICIO COMPLETO
 
         [Authorize]
         [HttpPost("crear-completo")]
@@ -72,6 +76,11 @@ namespace ApiReservasStyle.Controllers
 
                 if (usuario == null)
                     return Unauthorized("Usuario no encontrado");
+
+                if (usuario.IdSucursal == null)
+                    return BadRequest("El usuario no tiene sucursal asignada");
+
+                var sucursalId = usuario.IdSucursal.Value;
 
                 string imagenUrl = null;
 
@@ -109,7 +118,7 @@ namespace ApiReservasStyle.Controllers
                 var servicioSucursal = new ServicioSucursal
                 {
                     IdServicio = servicio.IdServicio,
-                    IdSucursal = usuario.IdSucursal.Value,
+                    IdSucursal = sucursalId,
                     Precio = dto.Precio
                 };
 

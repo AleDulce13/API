@@ -134,11 +134,8 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.HasKey(x => x.IdServicioSucursal);
 
-                entity.Property(x => x.IdServicio)
-                      .HasColumnName("IdServicio");
-
-                entity.Property(x => x.IdSucursal)
-                      .HasColumnName("IdSucursal");
+                entity.Property(x => x.IdServicio).HasColumnName("IdServicio");
+                entity.Property(x => x.IdSucursal).HasColumnName("IdSucursal");
 
                 entity.Property(x => x.Precio)
                       .HasColumnType("numeric(10,2)");
@@ -146,12 +143,12 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.HasOne(x => x.Servicio)
                       .WithMany(s => s.ServicioSucursales)
                       .HasForeignKey(x => x.IdServicio)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .HasConstraintName("FK_ServicioSucursal_Servicio");
 
                 entity.HasOne(x => x.Sucursal)
                       .WithMany(s => s.ServicioSucursales)
                       .HasForeignKey(x => x.IdSucursal)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .HasConstraintName("FK_ServicioSucursal_Sucursal");
             });
 
 
