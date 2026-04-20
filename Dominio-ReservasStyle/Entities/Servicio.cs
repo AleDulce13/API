@@ -16,8 +16,6 @@ namespace Dominio_ReservasStyle.Entities
         public string ImagenUrl { get; set; }
         public bool Estado { get; set; }
 
-        public Sucursal Sucursal { get; set; }
-
         public ICollection<ServicioSucursal> ServicioSucursales { get; set; } = new List<ServicioSucursal>();
 
     }

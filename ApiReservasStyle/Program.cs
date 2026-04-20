@@ -191,20 +191,20 @@ app.UseAuthorization();
 app.MapControllers();
 
 // MIGRATIONS + SEED
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    //db.Database.Migrate();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    //db.Database.Migrate();
 
-    //if (!db.Roles.Any())
-    //{
-    //    db.Roles.AddRange(
-    //        new Rol { NombreRol = "Admin" },
-    //        new Rol { NombreRol = "Cliente" },
-    //        new Rol { NombreRol = "Empleado" }
-    //    );
-    //    db.SaveChanges();
-    //}
-}
+//    //if (!db.Roles.Any())
+//    //{
+//    //    db.Roles.AddRange(
+//    //        new Rol { NombreRol = "Admin" },
+//    //        new Rol { NombreRol = "Cliente" },
+//    //        new Rol { NombreRol = "Empleado" }
+//    //    );
+//    //    db.SaveChanges();
+//    //}
+//}
 
 app.Run();

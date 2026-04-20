@@ -125,6 +125,7 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.Property(e => e.Estado)
                     .HasColumnName("Estado");
+
             });
 
             modelBuilder.Entity<ServicioSucursal>(entity =>
