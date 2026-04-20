@@ -56,14 +56,14 @@ namespace ApiReservasStyle.Controllers
                 if (foto != null)
                 {
                     var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
-                    var ruta = Path.Combine("wwwroot/uploads", nombreArchivo);
+                    var ruta = Path.Combine("wwwroot/imagenes", nombreArchivo);
 
                     using (var stream = new FileStream(ruta, FileMode.Create))
                     {
                         await foto.CopyToAsync(stream);
                     }
 
-                    rutaImagen = $"uploads/{nombreArchivo}";
+                    rutaImagen = $"imagenes/{nombreArchivo}";
                 }
 
                 // AQUÍ YA LE PASAS LA RUTA AL SERVICE

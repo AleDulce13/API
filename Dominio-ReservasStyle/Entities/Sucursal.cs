@@ -18,6 +18,8 @@ namespace Dominio_ReservasStyle.Entities
         public string Telefono { get; set; }
         public bool EstadoActivo { get; set; }
 
+        public ICollection<Servicio> Servicios { get; set; }
+
         [JsonIgnore]
         public ICollection<Usuario> Usuarios { get; set; }
         [JsonIgnore]

@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 
-    // ?? ESTO ES LO IMPORTANTE PARA SWAGGER
+    // SWAGGER
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -72,14 +72,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ClockSkew = TimeSpan.Zero
     };
 
-    // ?? FIX REAL DEL PROBLEMA
+    // FIX REAL DEL PROBLEMA
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
             var authHeader = context.Request.Headers["Authorization"].ToString();
 
-            Console.WriteLine("?? RAW AUTH HEADER => " + authHeader);
+            Console.WriteLine(" RAW AUTH HEADER => " + authHeader);
 
             if (!string.IsNullOrEmpty(authHeader) &&
                 authHeader.StartsWith("Bearer "))
@@ -92,13 +92,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("? JWT FAILED => " + context.Exception.Message);
+            Console.WriteLine(" JWT FAILED => " + context.Exception.Message);
             return Task.CompletedTask;
         },
 
         OnChallenge = context =>
         {
-            Console.WriteLine("?? 401 UNAUTHORIZED TOKEN");
+            Console.WriteLine(" 401 UNAUTHORIZED TOKEN");
             return Task.CompletedTask;
         },
 
@@ -164,7 +164,7 @@ app.UseSwaggerUI(c =>
     c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
 
-// ?? DEBUG (solo para pruebas, puedes quitarlo después)
+//  DEBUG 
 app.Use(async (context, next) =>
 {
     var auth = context.Request.Headers["Authorization"].ToString();

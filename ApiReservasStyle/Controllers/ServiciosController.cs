@@ -36,12 +36,14 @@ namespace ApiReservasStyle.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var data = await _service.GetById(id);
+            var servicio = await _context.Servicios
+            .Include(s => s.Sucursal) 
+            .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (data == null)
-                return NotFound();
+            if (servicio == null)
+                return NotFound("Servicio no encontrado");
 
-            return Ok(data);
+            return Ok(servicio);
         }
 
         [HttpGet("detalle")]
