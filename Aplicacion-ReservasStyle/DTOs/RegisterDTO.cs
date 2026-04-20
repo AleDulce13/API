@@ -17,10 +17,6 @@ namespace Aplicacion_ReservasStyle.DTOs
         [StringLength(100)]
         public string Apellido { get; set; }
 
-        [StringLength(20)]
-        public string? Telefono { get; set; }
-        public string? FotoPerfil { get; set; }
-
         [Required]
         [EmailAddress]
         [StringLength(150)]
@@ -32,5 +28,9 @@ namespace Aplicacion_ReservasStyle.DTOs
 
         [Required]
         public int IdRol { get; set; }
+
+        [Required] 
+        [StringLength(20)]
+        public string Telefono { get; set; }
     }
 }

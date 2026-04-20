@@ -42,17 +42,16 @@ namespace ApiReservasStyle.Controllers
 
 
         // REGISTRO
-        [HttpPost("Registrar")]
+        [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, IFormFile? foto)
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, IFormFile foto)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // GUARDAR IMAGEN
-                string? rutaImagen = null;
+                string rutaImagen = null;
 
                 if (foto != null)
                 {
@@ -67,10 +66,8 @@ namespace ApiReservasStyle.Controllers
                     rutaImagen = $"uploads/{nombreArchivo}";
                 }
 
-                // ASIGNAR AL DTO
-                dto.FotoPerfil = rutaImagen;
-
-                await _auth.Register(dto);
+                // AQUÍ YA LE PASAS LA RUTA AL SERVICE
+                await _auth.Register(dto, rutaImagen);
 
                 return Ok(new { message = "Usuario registrado correctamente" });
             }

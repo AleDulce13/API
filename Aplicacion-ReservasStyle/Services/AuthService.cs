@@ -30,7 +30,7 @@ namespace Aplicacion_ReservasStyle.Services
         }
 
         // REGISTRO
-        public async Task Register(RegisterDTO dto)
+        public async Task Register(RegisterDTO dto, string? fotoRuta)
         {
             var usuarios = await _repo.GetAll();
 
@@ -41,15 +41,15 @@ namespace Aplicacion_ReservasStyle.Services
             {
                 Nombre = dto.Nombre,
                 Apellido = dto.Apellido,
-                Telefono = dto.Telefono,
                 Email = dto.Email,
                 ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                FotoPerfil = dto.FotoPerfil,
                 IdRol = dto.IdRol,
                 FechaRegistro = DateTime.UtcNow,
                 Estado = true,
                 IdSucursal = null,
-                
+
+                Telefono = dto.Telefono,
+                FotoPerfil = fotoRuta
             };
 
             await _repo.Add(user);
