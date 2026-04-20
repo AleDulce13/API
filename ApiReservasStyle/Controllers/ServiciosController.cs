@@ -2,6 +2,7 @@
 using Aplicacion_ReservasStyle.Services;
 using Dominio_ReservasStyle.Entities;
 using Infraestructura_ReservasStyle.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace ApiReservasStyle.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class ServiciosController : ControllerBase
     {
         private readonly ServicioService _service;
