@@ -5,12 +5,12 @@ using Infraestructura_ReservasStyle.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ApiReservasStyle.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous]
     public class ServiciosController : ControllerBase
     {
         private readonly ServicioService _service;
@@ -74,22 +74,28 @@ namespace ApiReservasStyle.Controllers
         {
             Console.WriteLine("AUTH => " + Request.Headers["Authorization"]);
 
-            string imagenUrl = null;
-            int userId = 1;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userIdClaim == null)
+                return Unauthorized("Token inválido");
+
+            int userId = int.Parse(userIdClaim);
 
             var usuario = await _context.Usuarios
                 .Include(u => u.Sucursal)
                 .FirstOrDefaultAsync(u => u.IdUsuario == userId);
 
             if (usuario == null)
-                return Unauthorized();
+                return Unauthorized("Usuario no encontrado");
 
             var sucursalId = usuario.IdSucursal;
+
+            string imagenUrl = null;
 
             // GUARDAR IMAGEN
             if (dto.Imagen != null)
             {
-                var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wroot");
+                var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var folder = Path.Combine(webRoot, "imagenes");
 
                 if (!Directory.Exists(folder))
@@ -106,7 +112,6 @@ namespace ApiReservasStyle.Controllers
                 imagenUrl = "/imagenes/" + fileName;
             }
 
-            // SERVICIO
             var servicio = new Servicio
             {
                 Nombre = dto.Nombre,
@@ -119,7 +124,6 @@ namespace ApiReservasStyle.Controllers
             _context.Servicios.Add(servicio);
             await _context.SaveChangesAsync();
 
-            // RELACIÓN + PRECIO
             var servicioSucursal = new ServicioSucursal
             {
                 IdServicio = servicio.IdServicio,

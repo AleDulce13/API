@@ -2,7 +2,6 @@
 using Aplicacion_ReservasStyle.Services;
 using Dominio_ReservasStyle.Entities;
 using Infraestructura_ReservasStyle.Data;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,12 +40,9 @@ namespace ApiReservasStyle.Controllers
         }
 
         // CREATE
-        [Authorize]
         [HttpPost("crear-completo")]
         public async Task<IActionResult> CrearCompleto(RegistrarSucursal dto)
         {
-            Console.WriteLine("AUTH => " + Request.Headers["Authorization"]);
-
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
