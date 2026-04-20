@@ -25,6 +25,6 @@ namespace Dominio_ReservasStyle.Entities
 
         public int? IdSucursal { get; set; }
         [JsonIgnore]
-        public Sucursal Sucursal { get; set; }
+        public Sucursal? Sucursal { get; set; }
     }
 }

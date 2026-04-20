@@ -46,8 +46,7 @@ namespace Aplicacion_ReservasStyle.Services
                 IdRol = dto.IdRol,
                 FechaRegistro = DateTime.UtcNow,
                 Estado = true,
-                IdSucursal = null,
-
+                IdSucursal = dto.IdSucursal,
                 Telefono = dto.Telefono,
                 FotoPerfil = fotoRuta
             };

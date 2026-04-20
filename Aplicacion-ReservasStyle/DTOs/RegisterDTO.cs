@@ -32,5 +32,8 @@ namespace Aplicacion_ReservasStyle.DTOs
         [Required] 
         [StringLength(20)]
         public string Telefono { get; set; }
+
+        [Required]
+        public int IdSucursal { get; set; }
     }
 }
