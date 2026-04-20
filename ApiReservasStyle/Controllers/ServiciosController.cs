@@ -58,69 +58,74 @@ namespace ApiReservasStyle.Controllers
         [HttpPost("crear-completo")]
         public async Task<IActionResult> Crear([FromForm] ServicioCreateDto dto)
         {
-            Console.WriteLine("AUTH => " + Request.Headers["Authorization"]);
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (userIdClaim == null)
-                return Unauthorized("Token inválido");
-
-            int userId = int.Parse(userIdClaim);
-
-            var usuario = await _context.Usuarios
-                .Include(u => u.Sucursal)
-                .FirstOrDefaultAsync(u => u.IdUsuario == userId);
-
-            if (usuario == null)
-                return Unauthorized("Usuario no encontrado");
-
-            var sucursalId = usuario.IdSucursal;
-
-            string imagenUrl = null;
-
-            // GUARDAR IMAGEN
-            if (dto.Imagen != null)
+            try
             {
-                var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var folder = Path.Combine(webRoot, "imagenes");
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("Token inválido");
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Imagen.FileName);
-                var path = Path.Combine(folder, fileName);
+                int userId = int.Parse(userIdClaim);
 
-                using (var stream = new FileStream(path, FileMode.Create))
+                var usuario = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+
+                if (usuario == null)
+                    return Unauthorized("Usuario no encontrado");
+
+                string imagenUrl = null;
+
+                if (dto.Imagen != null)
                 {
-                    await dto.Imagen.CopyToAsync(stream);
+                    var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    var folder = Path.Combine(webRoot, "imagenes");
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    var fileName = Guid.NewGuid() + Path.GetExtension(dto.Imagen.FileName);
+                    var path = Path.Combine(folder, fileName);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await dto.Imagen.CopyToAsync(stream);
+                    }
+
+                    imagenUrl = "/imagenes/" + fileName;
                 }
 
-                imagenUrl = "/imagenes/" + fileName;
+                var servicio = new Servicio
+                {
+                    Nombre = dto.Nombre,
+                    Descripcion = dto.Descripcion,
+                    DuracionMinutos = dto.DuracionMinutos,
+                    ImagenUrl = imagenUrl,
+                    Estado = dto.Estado
+                };
+
+                _context.Servicios.Add(servicio);
+                await _context.SaveChangesAsync();
+
+                var servicioSucursal = new ServicioSucursal
+                {
+                    IdServicio = servicio.IdServicio,
+                    IdSucursal = usuario.IdSucursal.Value,
+                    Precio = dto.Precio
+                };
+
+                _context.ServicioSucursal.Add(servicioSucursal);
+                await _context.SaveChangesAsync();
+
+                return Ok(servicio);
             }
-
-            var servicio = new Servicio
+            catch (Exception ex)
             {
-                Nombre = dto.Nombre,
-                Descripcion = dto.Descripcion,
-                DuracionMinutos = dto.DuracionMinutos,
-                ImagenUrl = imagenUrl,
-                Estado = dto.Estado
-            };
-
-            _context.Servicios.Add(servicio);
-            await _context.SaveChangesAsync();
-
-            var servicioSucursal = new ServicioSucursal
-            {
-                IdServicio = servicio.IdServicio,
-                IdSucursal = dto.IdSucursal,
-                Precio = dto.Precio
-            };
-
-            _context.ServicioSucursal.Add(servicioSucursal);
-            await _context.SaveChangesAsync();
-
-            return Ok(servicio);
+                return StatusCode(500, new
+                {
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
         }
 
         // UPDATE
