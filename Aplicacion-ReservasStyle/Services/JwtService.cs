@@ -31,10 +31,18 @@ namespace Aplicacion_ReservasStyle.Services
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            string role = user.IdRol switch
+            {
+                1 => "Admin",
+                2 => "Cliente",
+                3 => "Empleado",
+                _ => "User"
+            };
+
             var claims = new[]
             {
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.IdRol.ToString())
+            new Claim(ClaimTypes.Role, role)
         };
 
             var token = new JwtSecurityToken(
