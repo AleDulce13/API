@@ -38,7 +38,7 @@ namespace ApiReservasStyle.Controllers
         {
             var servicio = await _context.Servicios
             .Include(s => s.Sucursal) 
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .FirstOrDefaultAsync(s => s.IdServicio == id);
 
             if (servicio == null)
                 return NotFound("Servicio no encontrado");
