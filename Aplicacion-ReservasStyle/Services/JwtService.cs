@@ -23,14 +23,13 @@ namespace Aplicacion_ReservasStyle.Services
 
         public string GenerateToken(Usuario user)
         {
-            Console.WriteLine(_config["Jwt:Key"]);
-
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["Jwt:Key"])
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // ROLES CORRECTOS
             string role = user.IdRol switch
             {
                 1 => "Admin",
@@ -41,9 +40,12 @@ namespace Aplicacion_ReservasStyle.Services
 
             var claims = new[]
             {
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, role)
-        };
+        // IMPORTANTE: IDENTIFICADOR DE USUARIO
+        new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
+
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, role)
+    };
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],

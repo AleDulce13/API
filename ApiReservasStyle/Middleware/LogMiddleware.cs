@@ -22,9 +22,16 @@ namespace ApiReservasStyle.Middleware
             var path = request.Path.ToString();
             var method = request.Method;
 
-            // 🔥 PERMITIR REGISTER Y LOGIN SIN VALIDACIONES
-            if (path.StartsWith("/api/Auth/register") ||
-                path.StartsWith("/api/Auth/login"))
+            // IGNORAR SWAGGER
+            if (path.StartsWith("/swagger"))
+            {
+                await _next(context);
+                return;
+            }
+
+            // IGNORAR LOGIN Y REGISTER
+            if (path.Contains("/api/Auth/register") ||
+                path.Contains("/api/Auth/login"))
             {
                 await _next(context);
                 return;
@@ -32,7 +39,6 @@ namespace ApiReservasStyle.Middleware
 
             // Obtener usuario desde JWT
             var userIdClaim =
-                context.User?.FindFirst("idUsuario")?.Value ??
                 context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             int? userId = null;
@@ -40,28 +46,19 @@ namespace ApiReservasStyle.Middleware
             if (int.TryParse(userIdClaim, out int parsedId))
                 userId = parsedId;
 
-            // Ejecutar request
             await _next(context);
 
             stopwatch.Stop();
 
-            var statusCode = context.Response.StatusCode;
-
-            // Ignorar Swagger
-            if (path.StartsWith("/swagger"))
-                return;
-
-            // Guardar log
             await logService.Crear(new LogDTO
             {
                 IdUsuario = userId,
                 Accion = $"{method} {path}",
-                Descripcion = $"HTTP {statusCode} - {stopwatch.ElapsedMilliseconds}ms",
+                Descripcion = $"HTTP {context.Response.StatusCode} - {stopwatch.ElapsedMilliseconds}ms",
                 TablaAfectada = path,
                 RegistroId = null,
                 Ip = context.Connection.RemoteIpAddress?.ToString()
             });
         }
-    }
-    
+    } 
 }
