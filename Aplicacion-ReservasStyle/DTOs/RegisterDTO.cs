@@ -17,13 +17,17 @@ namespace Aplicacion_ReservasStyle.DTOs
         [StringLength(100)]
         public string Apellido { get; set; }
 
+        [StringLength(20)]
+        public string? Telefono { get; set; }
+        public string? FotoPerfil { get; set; }
+
         [Required]
         [EmailAddress]
         [StringLength(150)]
         public string Email { get; set; }
 
         [Required]
-        [MinLength(6)]
+        [MinLength(8)]
         public string Password { get; set; }
 
         [Required]

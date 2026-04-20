@@ -21,7 +21,7 @@ namespace ApiReservasStyle.Controllers
         }
 
         // GET  
-        [HttpGet("usuarios")]
+        [HttpGet("Usuarios")]
         public async Task<IActionResult> GetUsuarios()
         {
             try
@@ -42,18 +42,41 @@ namespace ApiReservasStyle.Controllers
 
 
         // REGISTRO
+        [HttpPost("Registrar")]
         [AllowAnonymous]
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDTO dto)
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, IFormFile? foto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                // GUARDAR IMAGEN
+                string? rutaImagen = null;
+
+                if (foto != null)
+                {
+                    var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
+                    var ruta = Path.Combine("wwwroot/uploads", nombreArchivo);
+
+                    using (var stream = new FileStream(ruta, FileMode.Create))
+                    {
+                        await foto.CopyToAsync(stream);
+                    }
+
+                    rutaImagen = $"uploads/{nombreArchivo}";
+                }
+
+                // ASIGNAR AL DTO
+                dto.FotoPerfil = rutaImagen;
+
                 await _auth.Register(dto);
-                return Ok(new { message = "Usuario registrado" });
+
+                return Ok(new { message = "Usuario registrado correctamente" });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 

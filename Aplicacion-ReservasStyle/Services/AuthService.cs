@@ -41,14 +41,15 @@ namespace Aplicacion_ReservasStyle.Services
             {
                 Nombre = dto.Nombre,
                 Apellido = dto.Apellido,
+                Telefono = dto.Telefono,
                 Email = dto.Email,
                 ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                FotoPerfil = dto.FotoPerfil,
                 IdRol = dto.IdRol,
                 FechaRegistro = DateTime.UtcNow,
                 Estado = true,
                 IdSucursal = null,
-                Telefono = "",
-                FotoPerfil = ""
+                
             };
 
             await _repo.Add(user);
