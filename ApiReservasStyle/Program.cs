@@ -4,7 +4,6 @@ using Dominio_ReservasStyle.Entities;
 using Infraestructura_ReservasStyle.Data;
 using Infraestructura_ReservasStyle.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,26 +12,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region ?? RENDER PORT
+// PORT RENDER
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-#endregion
 
-#region ?? CONTROLLERS
+// CONTROLLERS
 builder.Services.AddControllers();
-#endregion
 
-#region ?? SWAGGER + JWT
+// SWAGGER + JWT FIX (IMPORTANTE)
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "API",
-        Version = "v1"
-    });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 
+    // ?? ESTO ES LO IMPORTANTE PARA SWAGGER
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -40,7 +34,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Pega SOLO el token (sin 'Bearer')"
+        Description = "Escribe SOLO el token (sin Bearer)"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -58,9 +52,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-#endregion
 
-#region ?? JWT AUTH FIX REAL
+// JWT AUTH
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -79,6 +72,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ClockSkew = TimeSpan.Zero
     };
 
+    // ?? FIX REAL DEL PROBLEMA
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -88,7 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             Console.WriteLine("?? RAW AUTH HEADER => " + authHeader);
 
             if (!string.IsNullOrEmpty(authHeader) &&
-                authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                authHeader.StartsWith("Bearer "))
             {
                 context.Token = authHeader["Bearer ".Length..].Trim();
             }
@@ -98,28 +92,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("? JWT FAILED: " + context.Exception.Message);
+            Console.WriteLine("? JWT FAILED => " + context.Exception.Message);
             return Task.CompletedTask;
         },
 
         OnChallenge = context =>
         {
-            Console.WriteLine("?? JWT CHALLENGE (401)");
+            Console.WriteLine("?? 401 UNAUTHORIZED TOKEN");
             return Task.CompletedTask;
         },
 
         OnTokenValidated = context =>
         {
-            Console.WriteLine("? TOKEN VALID");
+            Console.WriteLine("? TOKEN OK");
             return Task.CompletedTask;
         }
     };
 });
 
 builder.Services.AddAuthorization();
-#endregion
 
-#region ?? RATE LIMITING
+// RATE LIMITING
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("loginPolicy", opt =>
@@ -128,9 +121,8 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromSeconds(10);
     });
 });
-#endregion
 
-#region ?? CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -140,9 +132,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-#endregion
 
-#region ?? SERVICES
+// SERVICES
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SucursalService>();
@@ -158,16 +149,14 @@ builder.Services.AddScoped<PromocionServicioService>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<ServicioService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-#endregion
 
-#region ??? DB
+// DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-#endregion
 
 var app = builder.Build();
 
-#region ?? PIPELINE
+// PIPELINE
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -175,43 +164,33 @@ app.UseSwaggerUI(c =>
     c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
 
-#?? IMPORTANTÍSIMO: Forwarded Headers (Render / proxies)
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+// ?? DEBUG (solo para pruebas, puedes quitarlo después)
+app.Use(async (context, next) =>
 {
-    ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor |
-        ForwardedHeaders.XForwardedProto
+    var auth = context.Request.Headers["Authorization"].ToString();
+
+    Console.WriteLine("?? " + context.Request.Path);
+
+    if (string.IsNullOrWhiteSpace(auth))
+        Console.WriteLine("? NO AUTH HEADER");
+    else
+        Console.WriteLine("?? AUTH => " + auth);
+
+    await next();
 });
 
 app.UseCors("AllowAll");
 
 app.UseStaticFiles();
+
 app.UseRateLimiter();
 
-#?? JWT ORDER CORRECTO
 app.UseAuthentication();
 app.UseAuthorization();
 
-#endregion
-
-#region ?? DEBUG MIDDLEWARE
-app.Use(async (context, next) =>
-{
-    Console.WriteLine("?? REQUEST: " + context.Request.Path);
-
-    var auth = context.Request.Headers["Authorization"].ToString();
-
-    Console.WriteLine(string.IsNullOrWhiteSpace(auth)
-        ? "? NO AUTH HEADER"
-        : "?? AUTH HEADER => " + auth);
-
-    await next();
-});
-#endregion
-
 app.MapControllers();
 
-#region ?? MIGRATIONS + SEED
+// MIGRATIONS + SEED
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -227,6 +206,5 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
     }
 }
-#endregion
 
 app.Run();
