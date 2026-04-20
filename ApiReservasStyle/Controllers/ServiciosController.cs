@@ -66,9 +66,14 @@ namespace ApiReservasStyle.Controllers
             return Ok(data);
         }
 
-        [HttpPost]
+
+
+        [Authorize]
+        [HttpPost("crear-completo")]
         public async Task<IActionResult> Crear([FromForm] ServicioCreateDto dto)
         {
+            Console.WriteLine("AUTH => " + Request.Headers["Authorization"]);
+
             string imagenUrl = null;
             int userId = 1;
 
