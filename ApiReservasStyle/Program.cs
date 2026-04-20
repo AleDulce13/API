@@ -25,34 +25,42 @@ builder.Services.AddControllers()
      });
 
 // Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddAuthentication(options =>
 {
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Escribe: Bearer {token}"
-    });
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
 
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+        ),
+
+        ClockSkew = TimeSpan.Zero
+    };
+
+    // ESTO ES CLAVE PARA VER ERROR REAL
+    options.Events = new JwtBearerEvents
     {
+        OnAuthenticationFailed = context =>
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
+            Console.WriteLine("JWT ERROR: " + context.Exception.Message);
+            return Task.CompletedTask;
         }
-    });
+    };
 });
+
 
 //JWT
 builder.Services.AddAuthentication(options =>
@@ -136,7 +144,9 @@ app.UseSwaggerUI(c =>
     c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseCors("AllowAll");
 
