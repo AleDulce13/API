@@ -7,35 +7,57 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// PORT 
+// PORT RENDER
+
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+// CONTROLLERS
 
-// Controllers
-builder.Services.AddControllers()
-     .ConfigureApiBehaviorOptions(options =>
-     {
-         options.SuppressModelStateInvalidFilter = false;
-     });
+builder.Services.AddControllers();
 
-// Swagger
+// SWAGGER + JWT FIX
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-
-//JWT
-builder.Services.AddAuthentication(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Escribe: Bearer {token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// JWT AUTH
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -47,26 +69,17 @@ builder.Services.AddAuthentication(options =>
 
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
         ),
-
         ClockSkew = TimeSpan.Zero
-    };
-
-    // ESTO ES CLAVE PARA VER ERROR REAL
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine("JWT ERROR: " + context.Exception.Message);
-            return Task.CompletedTask;
-        }
     };
 });
 
+builder.Services.AddAuthorization();
+
 // RATE LIMITING
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("loginPolicy", opt =>
@@ -76,8 +89,8 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// CORS
 
-//CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -88,43 +101,29 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Services
+// SERVICES
+
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<SucursalService>();
-builder.Services.AddScoped<HorarioLocalService>();
-builder.Services.AddScoped<EmpleadoService>();
-builder.Services.AddScoped<ServicioSucursalService>();
-builder.Services.AddScoped<CitaService>();
-builder.Services.AddScoped<PagoService>();
-builder.Services.AddScoped<ComprobanteService>();
-builder.Services.AddScoped<PromocionService>();
-builder.Services.AddScoped<NotificacionService>();
-builder.Services.AddScoped<PromocionServicioService>();
-builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<ServicioService>();
+builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// DbContext
+// DB
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
-app.UseDeveloperExceptionPage();
+
+// PIPELINE 
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
-    c.RoutePrefix = "swagger";
-
     c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
 });
-
-app.UseHttpsRedirection();
-
-app.UseRouting();
 
 app.UseCors("AllowAll");
 
@@ -137,14 +136,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// MIGRATIONS + SEED
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // MIGRACIONES
     db.Database.Migrate();
 
-    // ROLES 
     if (!db.Roles.Any())
     {
         db.Roles.AddRange(
@@ -152,7 +150,6 @@ using (var scope = app.Services.CreateScope())
             new Rol { NombreRol = "Cliente" },
             new Rol { NombreRol = "Empleado" }
         );
-
         db.SaveChanges();
     }
 }
