@@ -24,6 +24,21 @@ namespace ApiReservasStyle.Controllers
             _env = env;
         }
 
+        // AQUÍ LO PONES (TEMPORAL PARA DEBUG)
+        [HttpPost("test-auth")]
+        public IActionResult Test()
+        {
+            var auth = Request.Headers["Authorization"].ToString();
+
+            return Ok(new
+            {
+                auth,
+                message = string.IsNullOrEmpty(auth)
+                    ? "NO LLEGA TOKEN"
+                    : "SI LLEGA TOKEN"
+            });
+        }
+
         // GET ALL
         [HttpGet]
         public async Task<IActionResult> GetAll()
