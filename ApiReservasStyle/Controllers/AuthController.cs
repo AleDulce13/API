@@ -44,7 +44,7 @@ namespace ApiReservasStyle.Controllers
         // REGISTRO
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, IFormFile foto)
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, [FromForm] IFormFile? foto = null)
         {
             try
             {
