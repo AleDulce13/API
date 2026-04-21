@@ -33,7 +33,6 @@ namespace Aplicacion_ReservasStyle.DTOs
         [StringLength(20)]
         public string Telefono { get; set; }
 
-        [Required]
         public int IdSucursal { get; set; }
     }
 }
