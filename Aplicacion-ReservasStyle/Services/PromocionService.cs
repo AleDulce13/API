@@ -33,7 +33,7 @@ namespace Aplicacion_ReservasStyle.Services
             return await _context.Promociones.FindAsync(id);
         }
 
-        //CREATE
+        // CREATE
         public async Task<Promocion> Crear(PromocionDTO dto)
         {
             var promocion = new Promocion
@@ -41,8 +41,10 @@ namespace Aplicacion_ReservasStyle.Services
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
                 PorcentajeDescuento = dto.PorcentajeDescuento,
-                FechaInicio = dto.FechaInicio,
-                FechaFin = dto.FechaFin,
+
+                FechaInicio = dto.FechaInicio.ToDateTime(TimeOnly.MinValue),
+                FechaFin = dto.FechaFin.ToDateTime(TimeOnly.MinValue),
+
                 Estado = dto.Estado
             };
 
@@ -60,7 +62,6 @@ namespace Aplicacion_ReservasStyle.Services
             });
 
             return promocion;
-
         }
 
         // UPDATE
@@ -74,8 +75,10 @@ namespace Aplicacion_ReservasStyle.Services
             promocion.Nombre = dto.Nombre;
             promocion.Descripcion = dto.Descripcion;
             promocion.PorcentajeDescuento = dto.PorcentajeDescuento;
-            promocion.FechaInicio = dto.FechaInicio;
-            promocion.FechaFin = dto.FechaFin;
+
+            promocion.FechaInicio = dto.FechaInicio.ToDateTime(TimeOnly.MinValue);
+            promocion.FechaFin = dto.FechaFin.ToDateTime(TimeOnly.MinValue);
+
             promocion.Estado = dto.Estado;
 
             await _context.SaveChangesAsync();
