@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -34,5 +35,7 @@ namespace Aplicacion_ReservasStyle.DTOs
         public string Telefono { get; set; }
 
         public int IdSucursal { get; set; }
+
+        public IFormFile? Foto { get; set; }
     }
 }

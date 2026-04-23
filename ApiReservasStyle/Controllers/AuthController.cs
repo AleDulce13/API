@@ -44,37 +44,27 @@ namespace ApiReservasStyle.Controllers
         // REGISTRO
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromForm] RegisterDTO dto, [FromForm] IFormFile? foto = null)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto)
         {
-            try
+            string rutaImagen = null;
+
+            if (dto.Foto != null)
             {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(dto.Foto.FileName);
+                var ruta = Path.Combine("wwwroot/imagenes", nombreArchivo);
 
-                string rutaImagen = null;
-
-                if (foto != null)
+                using (var stream = new FileStream(ruta, FileMode.Create))
                 {
-                    var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
-                    var ruta = Path.Combine("wwwroot/imagenes", nombreArchivo);
-
-                    using (var stream = new FileStream(ruta, FileMode.Create))
-                    {
-                        await foto.CopyToAsync(stream);
-                    }
-
-                    rutaImagen = $"imagenes/{nombreArchivo}";
+                    await dto.Foto.CopyToAsync(stream);
                 }
 
-                // AQUÍ YA LE PASAS LA RUTA AL SERVICE
-                await _auth.Register(dto, rutaImagen);
+                rutaImagen = $"imagenes/{nombreArchivo}";
+            }
 
-                return Ok(new { message = "Usuario registrado correctamente" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _auth.Register(dto, rutaImagen);
+
+            return Ok(new { message = "Usuario registrado correctamente" });
         }
 
         // LOGIN
