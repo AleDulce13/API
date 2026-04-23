@@ -11,8 +11,8 @@ namespace Aplicacion_ReservasStyle.DTOs
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public decimal PorcentajeDescuento { get; set; }
-        public DateOnly FechaInicio { get; set; }
-        public DateOnly FechaFin { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
         public bool Estado { get; set; }
     }
 }

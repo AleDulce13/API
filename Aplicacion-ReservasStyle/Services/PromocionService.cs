@@ -22,9 +22,19 @@ namespace Aplicacion_ReservasStyle.Services
         }
 
         //GET ALL
-        public async Task<List<Promocion>> ObtenerTodas()
+        public async Task<List<PromocionDTO>> ObtenerTodas()
         {
-            return await _context.Promociones.ToListAsync();
+            return await _context.Promociones
+                .Select(p => new PromocionDTO
+                {
+                    Nombre = p.Nombre,
+                    Descripcion = p.Descripcion,
+                    PorcentajeDescuento = p.PorcentajeDescuento,
+                    FechaInicio = p.FechaInicio,
+                    FechaFin = p.FechaFin,
+                    Estado = p.Estado
+                })
+                .ToListAsync();
         }
 
         //GET BY ID
@@ -42,8 +52,8 @@ namespace Aplicacion_ReservasStyle.Services
                 Descripcion = dto.Descripcion,
                 PorcentajeDescuento = dto.PorcentajeDescuento,
 
-                FechaInicio = dto.FechaInicio.ToDateTime(TimeOnly.MinValue),
-                FechaFin = dto.FechaFin.ToDateTime(TimeOnly.MinValue),
+                FechaInicio = dto.FechaInicio,
+                FechaFin = dto.FechaFin,
 
                 Estado = dto.Estado
             };
@@ -76,8 +86,8 @@ namespace Aplicacion_ReservasStyle.Services
             promocion.Descripcion = dto.Descripcion;
             promocion.PorcentajeDescuento = dto.PorcentajeDescuento;
 
-            promocion.FechaInicio = dto.FechaInicio.ToDateTime(TimeOnly.MinValue);
-            promocion.FechaFin = dto.FechaFin.ToDateTime(TimeOnly.MinValue);
+            promocion.FechaInicio = dto.FechaInicio;
+            promocion.FechaFin = dto.FechaFin;
 
             promocion.Estado = dto.Estado;
 
