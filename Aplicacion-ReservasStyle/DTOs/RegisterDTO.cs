@@ -30,11 +30,11 @@ namespace Aplicacion_ReservasStyle.DTOs
         [Required]
         public int IdRol { get; set; }
 
-        [Required] 
-        [StringLength(20)]
-        public string Telefono { get; set; }
+        ////[Required] 
+        ////[StringLength(20)]
+        ////public string Telefono { get; set; }
 
-        public int IdSucursal { get; set; }
+        //public int IdSucursal { get; set; }
 
         public IFormFile? Foto { get; set; }
     }
