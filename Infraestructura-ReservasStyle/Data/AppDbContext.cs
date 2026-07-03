@@ -42,7 +42,7 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.Property(x => x.Nombre).HasMaxLength(100);
                 entity.Property(x => x.Apellido).HasMaxLength(100);
                 entity.Property(x => x.Email).HasMaxLength(150);
-                entity.Property(x => x.Telefono).HasMaxLength(20);
+                entity.Property(x => x.Telefono).HasMaxLength(20).IsRequired(false);
                 entity.Property(x => x.ContrasenaHash);
                 entity.Property(x => x.FotoPerfil);
                 entity.Property(x => x.FechaRegistro);
