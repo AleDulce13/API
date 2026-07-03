@@ -32,7 +32,7 @@ namespace Aplicacion_ReservasStyle.DTOs
 
         ////[Required] 
         [StringLength(20)]
-        public string Telefono { get; set; }
+        public string? Telefono { get; set; }
 
         //public int IdSucursal { get; set; }
 
