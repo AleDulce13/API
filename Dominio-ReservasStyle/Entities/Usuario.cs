@@ -24,7 +24,6 @@ namespace Dominio_ReservasStyle.Entities
         public Rol Rol { get; set; }
 
         public int? IdSucursal { get; set; }
-        [JsonIgnore]
         public Sucursal? Sucursal { get; set; }
     }
 }
