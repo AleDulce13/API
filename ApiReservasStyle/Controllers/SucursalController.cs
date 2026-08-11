@@ -44,10 +44,9 @@ namespace ApiReservasStyle.Controllers
         public async Task<IActionResult> CrearCompleto(RegistrarSucursal dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
-
+            
             try
             {
-                //  Crear sucursal
                 var sucursal = new Sucursal
                 {
                     Nombre = dto.Nombre,
@@ -60,6 +59,7 @@ namespace ApiReservasStyle.Controllers
                 };
 
                 _context.Sucursales.Add(sucursal);
+
                 await _context.SaveChangesAsync();
 
                 var horarios = dto.Horarios.Select(h => new HorarioLocal
@@ -73,15 +73,21 @@ namespace ApiReservasStyle.Controllers
 
                 _context.HorarioLocal.AddRange(horarios);
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
-                return Ok(new { message = "Todo guardado correctamente" });
+                return Ok(new
+                {
+                    mensaje = "Sucursal creada correctamente",
+                    idSucursal = sucursal.IdSucursal
+                });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
