@@ -82,17 +82,22 @@ namespace ApiReservasStyle.Controllers
 
                 var sucursalId = usuario.IdSucursal.Value;
 
-                string imagenUrl = null;
+                string? imagenUrl = null;
 
-                if (dto.Imagen != null)
+                if (dto.Imagen != null && dto.Imagen.Length > 0)
                 {
-                    var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    var webRoot = _env.WebRootPath ??
+                        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
                     var folder = Path.Combine(webRoot, "imagenes");
 
                     if (!Directory.Exists(folder))
                         Directory.CreateDirectory(folder);
 
-                    var fileName = Guid.NewGuid() + Path.GetExtension(dto.Imagen.FileName);
+                    var extension = Path.GetExtension(dto.Imagen.FileName);
+
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+
                     var path = Path.Combine(folder, fileName);
 
                     using (var stream = new FileStream(path, FileMode.Create))
@@ -100,7 +105,8 @@ namespace ApiReservasStyle.Controllers
                         await dto.Imagen.CopyToAsync(stream);
                     }
 
-                    imagenUrl = "/imagenes/" + fileName;
+                    imagenUrl =
+                        $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/imagenes/{fileName}";
                 }
 
                 var servicio = new Servicio
