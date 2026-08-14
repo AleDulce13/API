@@ -1,4 +1,4 @@
-﻿using Aplicacion_ReservasStyle.DTOs;
+using Aplicacion_ReservasStyle.DTOs;
 using Aplicacion_ReservasStyle.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,6 +56,22 @@ namespace ApiReservasStyle.Controllers
         {
             await _service.Delete(id);
             return Ok("Cita eliminada");
+        }
+
+        // ACEPTAR CITA
+        [HttpPatch("{id}/aceptar")]
+        public async Task<IActionResult> AceptarCita(int id)
+        {
+            await _service.CambiarEstado(id, "Aceptada");
+            return Ok(new { message = "Cita aceptada" });
+        }
+
+        // DECLINAR CITA
+        [HttpPatch("{id}/declinar")]
+        public async Task<IActionResult> DeclinarCita(int id)
+        {
+            await _service.CambiarEstado(id, "Declinada");
+            return Ok(new { message = "Cita declinada" });
         }
     }
 }

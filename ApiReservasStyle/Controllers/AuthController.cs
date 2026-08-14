@@ -1,4 +1,4 @@
-﻿using Aplicacion_ReservasStyle.DTOs;
+using Aplicacion_ReservasStyle.DTOs;
 using Aplicacion_ReservasStyle.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,7 +84,8 @@ namespace ApiReservasStyle.Controllers
             {
                 token,
                 user.Email,
-                user.IdRol
+                user.IdRol,
+                user.IdUsuario
             });
         }
     }

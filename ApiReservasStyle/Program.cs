@@ -12,6 +12,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FIREBASE INITIALIZATION
+var firebaseCredentialsPath = Path.Combine(Directory.GetCurrentDirectory(), "firebase-credentials.json");
+if (File.Exists(firebaseCredentialsPath))
+{
+    FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions()
+    {
+        Credential = Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(firebaseCredentialsPath)
+    });
+    Console.WriteLine("Firebase Admin SDK inicializado correctamente.");
+}
+else
+{
+    Console.WriteLine("ADVERTENCIA: firebase-credentials.json no encontrado. Firebase no está inicializado.");
+}
+
 // PORT RENDER
 var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
