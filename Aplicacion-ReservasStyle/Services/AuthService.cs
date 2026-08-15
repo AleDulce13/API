@@ -29,6 +29,20 @@ namespace Aplicacion_ReservasStyle.Services
             return await _repo.GetAll();
         }
 
+        public async Task<List<UsuarioDTO>> GetEmpleadosAsignables()
+        {
+            return (await _repo.GetAll())
+                .Where(usuario => usuario.Estado && usuario.IdRol == 3)
+                .Select(usuario => new UsuarioDTO
+                {
+                    IdUsuario = usuario.IdUsuario,
+                    Nombre = usuario.Nombre,
+                    Apellido = usuario.Apellido,
+                    Email = usuario.Email
+                })
+                .ToList();
+        }
+
         // REGISTRO
         public async Task Register(RegisterDTO dto, string? fotoRuta)
         {

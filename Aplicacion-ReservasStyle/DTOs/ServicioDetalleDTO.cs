@@ -8,6 +8,8 @@ namespace Aplicacion_ReservasStyle.DTOs
 {
     public class ServicioDetalleDTO
     {
+        public int IdServicioSucursal { get; set; }
+        public int DuracionMinutos { get; set; }
         public string NombreServicio { get; set; }
         public string Sucursal { get; set; }
         public string Direccion { get; set; }

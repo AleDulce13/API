@@ -27,6 +27,7 @@ namespace Infraestructura_ReservasStyle.Data
         public DbSet<HorarioLocal> HorarioLocal { get; set; }
         public DbSet<HorariosDisponibles> HorariosDisponibles { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<DeviceRegistration> DeviceRegistrations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -209,6 +210,17 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.ToTable("Notificaciones");
 
                 entity.HasKey(x => x.IdNotificacion);
+            });
+
+            modelBuilder.Entity<DeviceRegistration>(entity =>
+            {
+                entity.ToTable("DeviceRegistrations");
+                entity.HasKey(x => x.IdDeviceRegistration);
+                entity.Property(x => x.FcmToken).HasMaxLength(4096).IsRequired();
+                entity.Property(x => x.Plataforma).HasMaxLength(20).IsRequired();
+                entity.Property(x => x.FechaActualizacion).IsRequired();
+                entity.HasIndex(x => x.FcmToken).IsUnique();
+                entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.IdUsuario).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<HorarioLocal>(entity =>

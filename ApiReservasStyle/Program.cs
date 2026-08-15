@@ -13,8 +13,8 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // FIREBASE INITIALIZATION
-var firebaseCredentialsPath = Path.Combine(Directory.GetCurrentDirectory(), "firebase-credentials.json");
-if (File.Exists(firebaseCredentialsPath))
+var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
+if (!string.IsNullOrWhiteSpace(firebaseCredentialsPath) && File.Exists(firebaseCredentialsPath))
 {
     FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions()
     {
@@ -24,7 +24,7 @@ if (File.Exists(firebaseCredentialsPath))
 }
 else
 {
-    Console.WriteLine("ADVERTENCIA: firebase-credentials.json no encontrado. Firebase no está inicializado.");
+    Console.WriteLine("ADVERTENCIA: Firebase:CredentialsPath no está configurada o el archivo no existe. Firebase no está inicializado.");
 }
 
 // PORT RENDER
@@ -160,6 +160,8 @@ builder.Services.AddScoped<PagoService>();
 builder.Services.AddScoped<ComprobanteService>();
 builder.Services.AddScoped<PromocionService>();
 builder.Services.AddScoped<NotificacionService>();
+builder.Services.AddScoped<IDeviceRegistrationService, DeviceRegistrationService>();
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddScoped<PromocionServicioService>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<ServicioService>();

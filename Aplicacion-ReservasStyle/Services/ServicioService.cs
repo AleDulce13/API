@@ -48,6 +48,8 @@ namespace Aplicacion_ReservasStyle.Services
                 where s.Estado && ss.Estado && su.EstadoActivo
                 select new ServicioDetalleDTO
                 {
+                    IdServicioSucursal = ss.IdServicioSucursal,
+                    DuracionMinutos = s.DuracionMinutos,
                     NombreServicio = s.Nombre,
                     Sucursal = su.Nombre,
                     Direccion = su.Direccion,

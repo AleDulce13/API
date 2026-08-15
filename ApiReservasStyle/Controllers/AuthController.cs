@@ -39,6 +39,13 @@ namespace ApiReservasStyle.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("empleados-asignables")]
+        public async Task<IActionResult> GetEmpleadosAsignables()
+        {
+            return Ok(await _auth.GetEmpleadosAsignables());
+        }
+
 
 
         // REGISTRO

@@ -1,10 +1,13 @@
 using Aplicacion_ReservasStyle.DTOs;
 using Aplicacion_ReservasStyle.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ApiReservasStyle.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class CitaController : ControllerBase
     {
@@ -15,18 +18,22 @@ namespace ApiReservasStyle.Controllers
             _service = service;
         }
 
+        private bool TryGetUserId(out int userId) => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
+
         // GET ALL
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _service.GetAll());
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            return Ok(await _service.GetAllForUser(userId, User.IsInRole("Admin")));
         }
 
         // GET BY ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var cita = await _service.GetById(id);
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            var cita = await _service.GetByIdForUser(id, userId, User.IsInRole("Admin"));
 
             if (cita == null)
                 return NotFound();
@@ -38,8 +45,16 @@ namespace ApiReservasStyle.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] CitaDTO dto)
         {
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            if (!User.IsInRole("Admin") && dto.IdCliente != userId) return Forbid();
             await _service.Add(dto);
             return Ok("Cita creada");
+        }
+
+        [HttpGet("horarios-disponibles")]
+        public async Task<IActionResult> GetHorariosDisponibles([FromQuery] int empleadoId, [FromQuery] int servicioSucursalId, [FromQuery] DateTime fecha)
+        {
+            return Ok(await _service.GetHorariosDisponibles(empleadoId, servicioSucursalId, fecha));
         }
 
         // UPDATE
@@ -62,7 +77,8 @@ namespace ApiReservasStyle.Controllers
         [HttpPatch("{id}/aceptar")]
         public async Task<IActionResult> AceptarCita(int id)
         {
-            await _service.CambiarEstado(id, "Aceptada");
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            if (!await _service.ChangeStatusForAssignedUser(id, userId, User.IsInRole("Admin"), "Aceptada")) return Forbid();
             return Ok(new { message = "Cita aceptada" });
         }
 
@@ -70,7 +86,8 @@ namespace ApiReservasStyle.Controllers
         [HttpPatch("{id}/declinar")]
         public async Task<IActionResult> DeclinarCita(int id)
         {
-            await _service.CambiarEstado(id, "Declinada");
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            if (!await _service.ChangeStatusForAssignedUser(id, userId, User.IsInRole("Admin"), "Declinada")) return Forbid();
             return Ok(new { message = "Cita declinada" });
         }
     }
