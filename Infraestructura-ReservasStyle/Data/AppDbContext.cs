@@ -92,12 +92,19 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.HasKey(e => e.IdEmpleado);
 
                 entity.Property(e => e.IdSucursal)
-                      .HasColumnName("IdSucursal");
+                    .HasColumnName("IdSucursal");
 
                 entity.HasOne(e => e.Sucursal)
-                      .WithMany(s => s.Empleados)
-                      .HasForeignKey(e => e.IdSucursal)
-                      .HasConstraintName("fk_empleado_sucursal");
+                    .WithMany(s => s.Empleados)
+                    .HasForeignKey(e => e.IdSucursal)
+                    .HasConstraintName("fk_empleado_sucursal")
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Usuario)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUsuario)
+                    .HasConstraintName("fk_empleado_usuario")
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
 
@@ -159,10 +166,10 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.HasKey(x => x.IdCita);
 
-                entity.HasOne(x => x.Empleado)
-                    .WithMany()
-                    .HasForeignKey(x => x.IdEmpleado)
-                    .HasPrincipalKey(x => x.IdEmpleado)
+                entity.HasOne(c => c.Empleado)
+                    .WithMany(e => e.Citas)
+                    .HasForeignKey(c => c.IdEmpleado)
+                    .HasPrincipalKey(e => e.IdEmpleado)
                     .HasConstraintName("fk_citas_empleado")
                     .OnDelete(DeleteBehavior.Restrict);
             });
