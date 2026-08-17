@@ -17,18 +17,18 @@ namespace Dominio_ReservasStyle.Entities
 
         public string Telefono { get; set; }
 
-        public string? Especialidad { get; set; }
+        public int IdSucursal { get; set; }
 
         public bool Estado { get; set; }
 
+        public string? Especialidad { get; set; }
+
         public DateTime FechaRegistro { get; set; }
 
-        public int IdSucursal { get; set; }
-
-        // Relación con Sucursal
+        // Navegación hacia Sucursal
         public Sucursal Sucursal { get; set; }
 
-        // Un empleado puede tener muchas citas
+        // Relación con Citas
         public ICollection<Cita> Citas { get; set; } = new List<Cita>();
     }
 }

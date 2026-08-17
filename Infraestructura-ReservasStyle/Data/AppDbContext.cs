@@ -216,6 +216,30 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.Property(c => c.FechaCreacion)
                       .HasColumnName("FechaCreacion");
+
+                // Cita -> Usuario
+                entity.HasOne(c => c.Cliente)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdCliente)
+                      .HasPrincipalKey(u => u.IdUsuario)
+                      .HasConstraintName("FK_Citas_Usuarios")
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Cita -> Empleado
+                entity.HasOne(c => c.Empleado)
+                      .WithMany(e => e.Citas)
+                      .HasForeignKey(c => c.IdEmpleado)
+                      .HasPrincipalKey(e => e.IdEmpleado)
+                      .HasConstraintName("fk_citas_empleado")
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Cita -> ServicioSucursal
+                entity.HasOne(c => c.ServicioSucursal)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdServicioSucursal)
+                      .HasPrincipalKey(ss => ss.IdServicioSucursal)
+                      .HasConstraintName("FK_Citas_ServicioSucursal")
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Pago>(entity =>
