@@ -51,59 +51,114 @@ namespace Aplicacion_ReservasStyle.Services
 
         // GET CITAS 
 
-        public async Task<List<Cita>> GetAllForUser(int userId, bool isAdmin)
-        {
+        public async Task<List<Cita>> GetAllForUser(
+            int userId,
+            bool isAdmin,
+            bool isCliente)
+           {
             Console.WriteLine("GET CITAS");
-
             Console.WriteLine($"UserId recibido: {userId}");
             Console.WriteLine($"Es Admin: {isAdmin}");
+            Console.WriteLine($"Es Cliente: {isCliente}");
 
-            // Buscar usuario
+
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+                .FirstOrDefaultAsync(
+                    u => u.IdUsuario == userId
+                );
 
             if (usuario == null)
             {
-                Console.WriteLine("❌ NO SE ENCONTRÓ EL USUARIO");
+                Console.WriteLine(
+                    "NO SE ENCONTRÓ EL USUARIO"
+                );
+
                 return new List<Cita>();
             }
 
-            Console.WriteLine($"Usuario encontrado: {usuario.IdUsuario}");
-            Console.WriteLine($"Sucursal del usuario: {usuario.IdSucursal}");
+            Console.WriteLine(
+                $"Usuario encontrado: {usuario.IdUsuario}"
+            );
+
+            Console.WriteLine(
+                $"Sucursal del usuario: {usuario.IdSucursal}"
+            );
+
+            if (isCliente)
+            {
+                Console.WriteLine(
+                    "USUARIO ES CLIENTE"
+                );
+
+                Console.WriteLine(
+                    $"Buscando citas de cliente: {userId}"
+                );
+
+                var citasCliente =
+                    await _context.Citas
+                        .Include(c => c.Empleado)
+                        .Where(c =>
+                            c.IdCliente == userId
+                        )
+                        .ToListAsync();
+
+                Console.WriteLine(
+                    $"Citas del cliente: {citasCliente.Count}"
+                );
+
+                foreach (var cita in citasCliente)
+                {
+                    Console.WriteLine(
+                        $"Cita {cita.IdCita} | " +
+                        $"Cliente: {cita.IdCliente} | " +
+                        $"Empleado: {cita.IdEmpleado} | " +
+                        $"ServicioSucursal: {cita.IdServicioSucursal}"
+                    );
+                }
+
+                return citasCliente;
+            }
 
             if (usuario.IdSucursal == null)
             {
-                Console.WriteLine("❌ EL USUARIO NO TIENE SUCURSAL");
+                Console.WriteLine(
+                    "EL USUARIO NO TIENE SUCURSAL"
+                );
+
                 return new List<Cita>();
             }
 
-            // Obtener TODAS las citas
-            var todasLasCitas = await _context.Citas
-                .Include(c => c.Empleado)
-                .ToListAsync();
+            Console.WriteLine(
+                $"BUSCANDO CITAS DE SUCURSAL: " +
+                $"{usuario.IdSucursal}"
+            );
 
-            Console.WriteLine($"Total citas en BD: {todasLasCitas.Count}");
+            var citasSucursal =
+                await _context.Citas
+                    .Include(c => c.Empleado)
+                    .Where(c =>
+                        c.Empleado != null &&
+                        c.Empleado.IdSucursal ==
+                            usuario.IdSucursal
+                    )
+                    .ToListAsync();
 
-            foreach (var cita in todasLasCitas)
+            Console.WriteLine(
+                $"Citas de la sucursal: " +
+                $"{citasSucursal.Count}"
+            );
+
+            foreach (var cita in citasSucursal)
             {
                 Console.WriteLine(
                     $"Cita {cita.IdCita} | " +
                     $"Empleado: {cita.IdEmpleado} | " +
-                    $"EmpleadoSucursal: {cita.Empleado?.IdSucursal} | " +
-                    $"UsuarioSucursal: {usuario.IdSucursal}"
+                    $"Sucursal empleado: " +
+                    $"{cita.Empleado?.IdSucursal}"
                 );
             }
 
-            // Filtrar por sucursal
-            var citas = todasLasCitas
-                .Where(c =>
-                    c.Empleado != null &&
-                    c.Empleado.IdSucursal == usuario.IdSucursal)
-                .ToList();
-
-            Console.WriteLine($"Citas después del filtro: {citas.Count}");
-
-            return citas;
+            return citasSucursal;
         }
 
         // GET BY ID 
