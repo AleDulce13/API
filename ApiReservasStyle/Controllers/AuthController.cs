@@ -92,7 +92,9 @@ namespace ApiReservasStyle.Controllers
                 token,
                 user.Email,
                 user.IdRol,
-                user.IdUsuario
+                user.IdUsuario,
+                user.IdSucursal
+
             });
         }
     }

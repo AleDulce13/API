@@ -27,9 +27,12 @@ namespace Aplicacion_ReservasStyle.Services
                 Encoding.UTF8.GetBytes(_config["Jwt:Key"])
             );
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256
+            );
 
-            // ROLES CORRECTOS
+            // ROLES
             string role = user.IdRol switch
             {
                 1 => "Admin",
@@ -40,12 +43,30 @@ namespace Aplicacion_ReservasStyle.Services
 
             var claims = new[]
             {
-        // IMPORTANTE: IDENTIFICADOR DE USUARIO
-        new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
+                // ID DEL USUARIO
+                new Claim(
+                    ClaimTypes.NameIdentifier,
+                    user.IdUsuario.ToString()
+                ),
 
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.Role, role)
-    };
+                // CORREO
+                new Claim(
+                    ClaimTypes.Email,
+                    user.Email
+                ),
+
+                // ROL
+                new Claim(
+                    ClaimTypes.Role,
+                    role
+                ),
+
+                // ID DE SUCURSAL
+                new Claim(
+                    "idSucursal",
+                    user.IdSucursal.ToString()
+                )
+            };
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
@@ -55,7 +76,8 @@ namespace Aplicacion_ReservasStyle.Services
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler()
+                .WriteToken(token);
         }
     }
 }
