@@ -29,6 +29,7 @@ namespace Dominio_ReservasStyle.Entities
         public Sucursal Sucursal { get; set; }
 
         // Relación con Citas
+        [JsonIgnore]
         public ICollection<Cita> Citas { get; set; } = new List<Cita>();
     }
 }

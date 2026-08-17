@@ -115,6 +115,7 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.Property(e => e.IdSucursal)
                       .HasColumnName("IdSucursal");
 
+                // Empleado -> Sucursal
                 entity.HasOne(e => e.Sucursal)
                       .WithMany(s => s.Empleados)
                       .HasForeignKey(e => e.IdSucursal)
@@ -208,8 +209,7 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.Property(c => c.FechaCreacion)
                       .HasColumnName("FechaCreacion");
 
-
-                // CLIENTE → USUARIO
+                // Cita -> Usuario
                 entity.HasOne(c => c.Cliente)
                       .WithMany()
                       .HasForeignKey(c => c.IdCliente)
@@ -217,8 +217,7 @@ namespace Infraestructura_ReservasStyle.Data
                       .HasConstraintName("FK_Citas_Usuarios")
                       .OnDelete(DeleteBehavior.Restrict);
 
-
-                // EMPLEADO → EMPLEADO
+                // Cita -> Empleado
                 entity.HasOne(c => c.Empleado)
                       .WithMany(e => e.Citas)
                       .HasForeignKey(c => c.IdEmpleado)
@@ -226,8 +225,7 @@ namespace Infraestructura_ReservasStyle.Data
                       .HasConstraintName("fk_citas_empleado")
                       .OnDelete(DeleteBehavior.Restrict);
 
-
-                // SERVICIO SUCURSAL
+                // Cita -> ServicioSucursal
                 entity.HasOne(c => c.ServicioSucursal)
                       .WithMany()
                       .HasForeignKey(c => c.IdServicioSucursal)
