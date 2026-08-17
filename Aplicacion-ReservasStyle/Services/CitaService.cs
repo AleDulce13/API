@@ -40,16 +40,68 @@ namespace Aplicacion_ReservasStyle.Services
             return await _repo.GetById(id);
         }
 
+        // GET CITAS
+
         public async Task<List<Cita>> GetAllForUser(int userId, bool isAdmin)
         {
-            var citas = await _repo.GetAll();
-            return isAdmin ? citas : citas.Where(cita => cita.IdCliente == userId || cita.IdEmpleado == userId).ToList();
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+
+            if (usuario == null)
+                return new List<Cita>();
+
+            if (usuario.IdSucursal == null)
+                return new List<Cita>();
+
+            var empleadosSucursal = await _context.Usuarios
+                .Where(u => u.IdSucursal == usuario.IdSucursal
+                         && u.IdRol == 3
+                         && u.Estado)
+                .Select(u => u.IdUsuario)
+                .ToListAsync();
+
+            var citas = await _context.Citas
+                .Where(c => empleadosSucursal.Contains(c.IdEmpleado))
+                .ToListAsync();
+
+            if (isAdmin)
+                return citas;
+
+            return citas
+                .Where(c => c.IdEmpleado == userId)
+                .ToList();
         }
 
         public async Task<Cita?> GetByIdForUser(int id, int userId, bool isAdmin)
         {
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == userId);
+
+            if (usuario == null || usuario.IdSucursal == null)
+                return null;
+
+            var empleadosSucursal = await _context.Usuarios
+                .Where(u => u.IdSucursal == usuario.IdSucursal
+                         && u.IdRol == 3
+                         && u.Estado)
+                .Select(u => u.IdUsuario)
+                .ToListAsync();
+
             var cita = await _repo.GetById(id);
-            return cita is not null && (isAdmin || cita.IdCliente == userId || cita.IdEmpleado == userId) ? cita : null;
+
+            if (cita == null)
+                return null;
+
+            if (!empleadosSucursal.Contains(cita.IdEmpleado))
+                return null;
+
+            if (isAdmin)
+                return cita;
+
+            if (cita.IdEmpleado == userId)
+                return cita;
+
+            return null;
         }
 
         // CREATE
