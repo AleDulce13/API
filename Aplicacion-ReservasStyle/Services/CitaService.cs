@@ -314,6 +314,26 @@ namespace Aplicacion_ReservasStyle.Services
                 "cita_created");
         }
 
+        public async Task<List<Empleado>> GetEmpleadosPorServicioSucursal(
+            int idServicioSucursal)
+        {
+            var servicioSucursal = await _context.ServicioSucursal
+                .FirstOrDefaultAsync(x =>
+                    x.IdServicioSucursal == idServicioSucursal &&
+                    x.Estado);
+
+            if (servicioSucursal == null)
+                return new List<Empleado>();
+
+            var empleados = await _context.Empleados
+                .Where(e =>
+                    e.IdSucursal == servicioSucursal.IdSucursal &&
+                    e.Estado)
+                .ToListAsync();
+
+            return empleados;
+        }
+
         // HORARIOS DISPONIBLES
 
         public async Task<List<string>> GetHorariosDisponibles(

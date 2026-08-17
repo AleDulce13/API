@@ -94,6 +94,16 @@ namespace ApiReservasStyle.Controllers
             return Ok("Cita creada");
         }
 
+        [HttpGet("empleados-servicio/{idServicioSucursal}")]
+        public async Task<IActionResult> GetEmpleadosPorServicioSucursal(
+            int idServicioSucursal)
+        {
+            var empleados = await _service.GetEmpleadosPorServicioSucursal(
+                idServicioSucursal);
+
+            return Ok(empleados);
+        }
+
         // HORARIOS DISPONIBLES
 
         [HttpGet("horarios-disponibles")]
