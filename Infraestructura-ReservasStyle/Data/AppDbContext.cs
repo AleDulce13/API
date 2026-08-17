@@ -91,14 +91,44 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.HasKey(e => e.IdEmpleado);
 
-                entity.Property(e => e.IdSucursal)
-                    .HasColumnName("IdSucursal");
+                entity.Property(e => e.IdEmpleado)
+                      .HasColumnName("IdEmpleado");
 
+                entity.Property(e => e.Nombre)
+                      .HasColumnName("Nombre");
+
+                entity.Property(e => e.Apellido)
+                      .HasColumnName("Apellido");
+
+                entity.Property(e => e.Telefono)
+                      .HasColumnName("Telefono");
+
+                entity.Property(e => e.Especialidad)
+                      .HasColumnName("Especialidad");
+
+                entity.Property(e => e.Estado)
+                      .HasColumnName("Estado");
+
+                entity.Property(e => e.FechaRegistro)
+                      .HasColumnName("FechaRegistro");
+
+                entity.Property(e => e.IdSucursal)
+                      .HasColumnName("IdSucursal");
+
+                // Empleado -> Sucursal
                 entity.HasOne(e => e.Sucursal)
-                    .WithMany(s => s.Empleados)
-                    .HasForeignKey(e => e.IdSucursal)
-                    .HasConstraintName("fk_empleado_sucursal")
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany(s => s.Empleados)
+                      .HasForeignKey(e => e.IdSucursal)
+                      .HasConstraintName("fk_empleado_sucursal")
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Empleado -> Citas
+                entity.HasMany(e => e.Citas)
+                      .WithOne(c => c.Empleado)
+                      .HasForeignKey(c => c.IdEmpleado)
+                      .HasPrincipalKey(e => e.IdEmpleado)
+                      .HasConstraintName("fk_citas_empleado")
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
 
@@ -160,12 +190,32 @@ namespace Infraestructura_ReservasStyle.Data
 
                 entity.HasKey(c => c.IdCita);
 
-                entity.HasOne(c => c.Empleado)
-                    .WithMany(e => e.Citas)
-                    .HasForeignKey(c => c.IdEmpleado)
-                    .HasPrincipalKey(e => e.IdEmpleado)
-                    .HasConstraintName("fk_citas_empleado")
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(c => c.IdCita)
+                      .HasColumnName("IdCita");
+
+                entity.Property(c => c.IdCliente)
+                      .HasColumnName("IdCliente");
+
+                entity.Property(c => c.IdEmpleado)
+                      .HasColumnName("IdEmpleado");
+
+                entity.Property(c => c.IdServicioSucursal)
+                      .HasColumnName("IdServicioSucursal");
+
+                entity.Property(c => c.Fecha)
+                      .HasColumnName("Fecha");
+
+                entity.Property(c => c.HoraInicio)
+                      .HasColumnName("HoraInicio");
+
+                entity.Property(c => c.HoraFin)
+                      .HasColumnName("HoraFin");
+
+                entity.Property(c => c.Estado)
+                      .HasColumnName("Estado");
+
+                entity.Property(c => c.FechaCreacion)
+                      .HasColumnName("FechaCreacion");
             });
 
             modelBuilder.Entity<Pago>(entity =>

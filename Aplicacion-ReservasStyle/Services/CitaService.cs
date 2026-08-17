@@ -41,8 +41,8 @@ namespace Aplicacion_ReservasStyle.Services
         }
 
         // GET BY ID
-        
-        public async Task<Cita> GetById(int id)
+
+        public async Task<Cita?> GetById(int id)
         {
             return await _context.Citas
                 .Include(c => c.Empleado)
@@ -59,35 +59,17 @@ namespace Aplicacion_ReservasStyle.Services
             if (usuario == null || usuario.IdSucursal == null)
                 return new List<Cita>();
 
-            var empleadosSucursal = await _context.Empleados
-                .Where(e =>
-                    e.IdSucursal == usuario.IdSucursal &&
-                    e.Estado)
-                .Select(e => e.IdEmpleado)
-                .ToListAsync();
-
             var citas = await _context.Citas
                 .Include(c => c.Empleado)
-                .Where(c => empleadosSucursal.Contains(c.IdEmpleado))
+                .Where(c =>
+                    c.Empleado != null &&
+                    c.Empleado.IdSucursal == usuario.IdSucursal)
                 .ToListAsync();
 
-            if (isAdmin)
-                return citas;
-
-            var empleado = await _context.Empleados
-                .FirstOrDefaultAsync(e =>
-                    e.IdUsuario == userId &&
-                    e.Estado);
-
-            if (empleado == null)
-                return new List<Cita>();
-
-            return citas
-                .Where(c => c.IdEmpleado == empleado.IdEmpleado)
-                .ToList();
+            return citas;
         }
 
-        // GET BY ID PARA USUARIO
+        // GET BY ID 
 
         public async Task<Cita?> GetByIdForUser(
             int id,
@@ -100,13 +82,6 @@ namespace Aplicacion_ReservasStyle.Services
             if (usuario == null || usuario.IdSucursal == null)
                 return null;
 
-            var empleadosSucursal = await _context.Empleados
-                .Where(e =>
-                    e.IdSucursal == usuario.IdSucursal &&
-                    e.Estado)
-                .Select(e => e.IdEmpleado)
-                .ToListAsync();
-
             var cita = await _context.Citas
                 .Include(c => c.Empleado)
                 .FirstOrDefaultAsync(c => c.IdCita == id);
@@ -114,24 +89,16 @@ namespace Aplicacion_ReservasStyle.Services
             if (cita == null)
                 return null;
 
-            if (!empleadosSucursal.Contains(cita.IdEmpleado))
+            if (cita.Empleado == null)
+                return null;
+
+            if (cita.Empleado.IdSucursal != usuario.IdSucursal)
                 return null;
 
             if (isAdmin)
                 return cita;
 
-            var empleado = await _context.Empleados
-                .FirstOrDefaultAsync(e =>
-                    e.IdUsuario == userId &&
-                    e.Estado);
-
-            if (empleado == null)
-                return null;
-
-            if (cita.IdEmpleado == empleado.IdEmpleado)
-                return cita;
-
-            return null;
+            return cita;
         }
 
         // CREATE
@@ -189,37 +156,45 @@ namespace Aplicacion_ReservasStyle.Services
             var cita = new Cita
             {
                 IdCliente = dto.IdCliente,
+
                 IdEmpleado = dto.IdEmpleado,
+
                 IdServicioSucursal = dto.IdServicioSucursal,
+
                 Fecha = dto.Fecha.ToUniversalTime(),
+
                 HoraInicio = dto.HoraInicio,
+
                 HoraFin = dto.HoraFin,
+
                 Estado = dto.Estado,
+
                 FechaCreacion = DateTime.UtcNow
             };
 
             await _repo.Add(cita);
 
-            // LOG
             await _logService.Crear(new LogDTO
             {
                 IdUsuario = dto.IdCliente,
                 Accion = "CREAR_CITA",
-                Descripcion = $"Se creó una cita para el cliente {dto.IdCliente}",
+                Descripcion =
+                    $"Se creó una cita para el cliente {dto.IdCliente} " +
+                    $"con el empleado {dto.IdEmpleado}",
+
                 TablaAfectada = "Citas",
+
                 RegistroId = cita.IdCita,
+
                 Ip = null
             });
 
-            if (empleado.IdUsuario > 0)
-            {
-                await TryNotifyAsync(
-                    empleado.IdUsuario,
-                    "Nueva cita",
-                    "Tienes una nueva cita asignada.",
-                    cita.IdCita,
-                    "cita_created");
-            }
+            await TryNotifyAsync(
+                dto.IdEmpleado,
+                "Nueva cita",
+                "Tienes una nueva cita asignada.",
+                cita.IdCita,
+                "cita_created");
         }
 
         // HORARIOS DISPONIBLES
@@ -229,10 +204,13 @@ namespace Aplicacion_ReservasStyle.Services
             int servicioSucursalId,
             DateTime fecha)
         {
-            var empleadoValido = await _context.Empleados
-                .AnyAsync(e =>
+            var empleado = await _context.Empleados
+                .FirstOrDefaultAsync(e =>
                     e.IdEmpleado == empleadoId &&
                     e.Estado);
+
+            if (empleado == null)
+                return new List<string>();
 
             var servicio = await _context.ServicioSucursal
                 .Include(item => item.Servicio)
@@ -241,13 +219,13 @@ namespace Aplicacion_ReservasStyle.Services
                     item.Estado &&
                     item.Servicio.Estado);
 
-            if (!empleadoValido || servicio == null)
+            if (servicio == null)
                 return new List<string>();
 
             var horariosSucursal = await _context.HorarioLocal
                 .Where(item =>
                     item.Estado &&
-                    item.IdSucursal == servicio.IdSucursal)
+                    item.IdSucursal == empleado.IdSucursal)
                 .OrderBy(item => item.HoraApertura)
                 .ToListAsync();
 
@@ -258,9 +236,10 @@ namespace Aplicacion_ReservasStyle.Services
             if (horario == null)
                 return new List<string>();
 
-            var fechaUtc = DateTime.SpecifyKind(
-                fecha.Date,
-                DateTimeKind.Utc);
+            var fechaUtc =
+                DateTime.SpecifyKind(
+                    fecha.Date,
+                    DateTimeKind.Utc);
 
             var ocupadas = await _context.Citas
                 .Where(cita =>
@@ -269,8 +248,9 @@ namespace Aplicacion_ReservasStyle.Services
                     cita.Estado != "Declinada")
                 .ToListAsync();
 
-            var duracion = TimeSpan.FromMinutes(
-                servicio.Servicio.DuracionMinutos);
+            var duracion =
+                TimeSpan.FromMinutes(
+                    servicio.Servicio.DuracionMinutos);
 
             var resultado = new List<string>();
 
@@ -295,15 +275,17 @@ namespace Aplicacion_ReservasStyle.Services
             return resultado;
         }
 
-        // VALIDAR DÍA
-
+        // DÍA DE LA SEMANA
+       
         private static bool AplicaAlDia(
             string? diaSemana,
             DayOfWeek dia)
         {
-            var texto = diaSemana?
-                .Trim()
-                .ToLowerInvariant() ?? string.Empty;
+            var texto =
+                diaSemana?
+                    .Trim()
+                    .ToLowerInvariant()
+                ?? string.Empty;
 
             if (texto.Contains("lunes a domingo"))
                 return true;
@@ -326,18 +308,21 @@ namespace Aplicacion_ReservasStyle.Services
             };
 
             return texto.Contains(nombres[dia]) ||
-                   texto.Contains(dia.ToString().ToLowerInvariant());
+                   texto.Contains(
+                       dia.ToString().ToLowerInvariant());
         }
 
         // UPDATE
 
         public async Task Update(int id, CitaDTO dto)
         {
-            var cita = await _repo.GetById(id);
+            var cita = await _context.Citas
+                .FirstOrDefaultAsync(c => c.IdCita == id);
 
             if (cita == null)
             {
-                throw new Exception("Cita no encontrada");
+                throw new InvalidOperationException(
+                    "Cita no encontrada.");
             }
 
             var empleado = await _context.Empleados
@@ -352,11 +337,11 @@ namespace Aplicacion_ReservasStyle.Services
             }
 
             var servicio = await _context.ServicioSucursal
-                .Include(s => s.Servicio)
-                .SingleOrDefaultAsync(s =>
-                    s.IdServicioSucursal == dto.IdServicioSucursal &&
-                    s.Estado &&
-                    s.Servicio.Estado);
+                .Include(x => x.Servicio)
+                .FirstOrDefaultAsync(x =>
+                    x.IdServicioSucursal == dto.IdServicioSucursal &&
+                    x.Estado &&
+                    x.Servicio.Estado);
 
             if (servicio == null)
             {
@@ -364,9 +349,12 @@ namespace Aplicacion_ReservasStyle.Services
                     "El servicio seleccionado no está disponible.");
             }
 
+            var duracion =
+                TimeSpan.FromMinutes(
+                    servicio.Servicio.DuracionMinutos);
+
             if (dto.HoraFin <= dto.HoraInicio ||
-                dto.HoraFin - dto.HoraInicio !=
-                TimeSpan.FromMinutes(servicio.Servicio.DuracionMinutos))
+                dto.HoraFin - dto.HoraInicio != duracion)
             {
                 throw new InvalidOperationException(
                     "La duración de la cita no coincide con el servicio.");
@@ -386,27 +374,46 @@ namespace Aplicacion_ReservasStyle.Services
             if (existeTraslape)
             {
                 throw new InvalidOperationException(
-                    "El horario seleccionado ya no está disponible para ese empleado.");
+                    "El horario seleccionado ya está ocupado para ese empleado.");
             }
 
             cita.IdCliente = dto.IdCliente;
+
             cita.IdEmpleado = dto.IdEmpleado;
-            cita.IdServicioSucursal = dto.IdServicioSucursal;
-            cita.Fecha = dto.Fecha.ToUniversalTime();
-            cita.HoraInicio = dto.HoraInicio;
-            cita.HoraFin = dto.HoraFin;
-            cita.Estado = dto.Estado;
+
+            cita.IdServicioSucursal =
+                dto.IdServicioSucursal;
+
+            cita.Fecha =
+                dto.Fecha.ToUniversalTime();
+
+            cita.HoraInicio =
+                dto.HoraInicio;
+
+            cita.HoraFin =
+                dto.HoraFin;
+
+            cita.Estado =
+                dto.Estado;
 
             await _repo.Update(cita);
 
             // LOG
+
             await _logService.Crear(new LogDTO
             {
                 IdUsuario = dto.IdCliente,
+
                 Accion = "ACTUALIZAR_CITA",
-                Descripcion = $"Se actualizó la cita ID {id}",
+
+                Descripcion =
+                    $"Se actualizó la cita ID {id}. " +
+                    $"Empleado asignado: {dto.IdEmpleado}",
+
                 TablaAfectada = "Citas",
+
                 RegistroId = id,
+
                 Ip = null
             });
         }
@@ -415,23 +422,30 @@ namespace Aplicacion_ReservasStyle.Services
 
         public async Task Delete(int id)
         {
-            var cita = await _repo.GetById(id);
+            var cita = await _context.Citas
+                .FirstOrDefaultAsync(c => c.IdCita == id);
 
             if (cita == null)
             {
-                throw new Exception("Cita no encontrada");
+                throw new InvalidOperationException(
+                    "Cita no encontrada.");
             }
 
             await _repo.Delete(id);
 
-            // LOG
             await _logService.Crear(new LogDTO
             {
                 IdUsuario = cita.IdCliente,
+
                 Accion = "ELIMINAR_CITA",
-                Descripcion = $"Se eliminó la cita ID {id}",
+
+                Descripcion =
+                    $"Se eliminó la cita ID {id}",
+
                 TablaAfectada = "Citas",
+
                 RegistroId = id,
+
                 Ip = null
             });
         }
@@ -444,50 +458,16 @@ namespace Aplicacion_ReservasStyle.Services
             bool isAdmin,
             string status)
         {
-            var cita = await _repo.GetById(id);
+            var cita = await _context.Citas
+                .FirstOrDefaultAsync(c => c.IdCita == id);
 
             if (cita == null)
                 return false;
 
-            if (isAdmin)
+            if (!isAdmin)
             {
-                cita.Estado = status;
-
-                await _repo.Update(cita);
-
-                await _logService.Crear(new LogDTO
-                {
-                    IdUsuario = userId,
-                    Accion = "CAMBIAR_ESTADO_CITA",
-                    Descripcion =
-                        $"La cita ID {id} cambió a {status}",
-                    TablaAfectada = "Citas",
-                    RegistroId = id,
-                    Ip = null
-                });
-
-                await TryNotifyAsync(
-                    cita.IdCliente,
-                    "Actualización de cita",
-                    $"Tu cita fue {status.ToLowerInvariant()}.",
-                    cita.IdCita,
-                    status == "Aceptada"
-                        ? "cita_accepted"
-                        : "cita_declined");
-
-                return true;
+                return false;
             }
-
-            var empleado = await _context.Empleados
-                .FirstOrDefaultAsync(e =>
-                    e.IdUsuario == userId &&
-                    e.Estado);
-
-            if (empleado == null)
-                return false;
-
-            if (cita.IdEmpleado != empleado.IdEmpleado)
-                return false;
 
             cita.Estado = status;
 
@@ -496,11 +476,16 @@ namespace Aplicacion_ReservasStyle.Services
             await _logService.Crear(new LogDTO
             {
                 IdUsuario = userId,
+
                 Accion = "CAMBIAR_ESTADO_CITA",
+
                 Descripcion =
                     $"La cita ID {id} cambió a {status}",
+
                 TablaAfectada = "Citas",
+
                 RegistroId = id,
+
                 Ip = null
             });
 
@@ -517,6 +502,7 @@ namespace Aplicacion_ReservasStyle.Services
         }
 
         // NOTIFICACIÓN
+
         private async Task TryNotifyAsync(
             int recipientUserId,
             string title,
@@ -535,7 +521,8 @@ namespace Aplicacion_ReservasStyle.Services
             }
             catch
             {
-
+                // El envío push no debe revertir
+                // la operación de negocio.
             }
         }
     }

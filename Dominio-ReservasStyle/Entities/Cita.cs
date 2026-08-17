@@ -26,6 +26,7 @@ namespace Dominio_ReservasStyle.Entities
 
         public DateTime FechaCreacion { get; set; }
 
+        // Relación Cita -> Empleado
         public Empleado Empleado { get; set; }
     }
 }
