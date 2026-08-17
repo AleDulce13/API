@@ -158,6 +158,13 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.ToTable("Citas");
 
                 entity.HasKey(x => x.IdCita);
+
+                entity.HasOne(x => x.Empleado)
+                    .WithMany()
+                    .HasForeignKey(x => x.IdEmpleado)
+                    .HasPrincipalKey(x => x.IdEmpleado)
+                    .HasConstraintName("fk_citas_empleado")
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Pago>(entity =>
