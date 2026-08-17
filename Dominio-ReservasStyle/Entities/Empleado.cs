@@ -23,6 +23,11 @@ namespace Dominio_ReservasStyle.Entities
 
         public bool Estado { get; set; }
 
+        // Relaciones
+        public Sucursal Sucursal { get; set; }
+
         public Usuario Usuario { get; set; }
+
+        public ICollection<Cita> Citas { get; set; }
     }
 }
