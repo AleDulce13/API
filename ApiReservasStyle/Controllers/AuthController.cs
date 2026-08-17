@@ -90,11 +90,10 @@ namespace ApiReservasStyle.Controllers
             return Ok(new
             {
                 token,
-                user.Email,
-                user.IdRol,
-                user.IdUsuario,
-                user.IdSucursal
-
+                idUsuario = user.IdUsuario,
+                email = user.Email,
+                idRol = user.IdRol,
+                idSucursal = user.IdSucursal
             });
         }
     }
