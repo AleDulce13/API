@@ -115,19 +115,10 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.Property(e => e.IdSucursal)
                       .HasColumnName("IdSucursal");
 
-                // Empleado -> Sucursal
                 entity.HasOne(e => e.Sucursal)
                       .WithMany(s => s.Empleados)
                       .HasForeignKey(e => e.IdSucursal)
                       .HasConstraintName("fk_empleado_sucursal")
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                // Empleado -> Citas
-                entity.HasMany(e => e.Citas)
-                      .WithOne(c => c.Empleado)
-                      .HasForeignKey(c => c.IdEmpleado)
-                      .HasPrincipalKey(e => e.IdEmpleado)
-                      .HasConstraintName("fk_citas_empleado")
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -217,7 +208,8 @@ namespace Infraestructura_ReservasStyle.Data
                 entity.Property(c => c.FechaCreacion)
                       .HasColumnName("FechaCreacion");
 
-                // Cita -> Usuario
+
+                // CLIENTE → USUARIO
                 entity.HasOne(c => c.Cliente)
                       .WithMany()
                       .HasForeignKey(c => c.IdCliente)
@@ -225,7 +217,8 @@ namespace Infraestructura_ReservasStyle.Data
                       .HasConstraintName("FK_Citas_Usuarios")
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Cita -> Empleado
+
+                // EMPLEADO → EMPLEADO
                 entity.HasOne(c => c.Empleado)
                       .WithMany(e => e.Citas)
                       .HasForeignKey(c => c.IdEmpleado)
@@ -233,7 +226,8 @@ namespace Infraestructura_ReservasStyle.Data
                       .HasConstraintName("fk_citas_empleado")
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Cita -> ServicioSucursal
+
+                // SERVICIO SUCURSAL
                 entity.HasOne(c => c.ServicioSucursal)
                       .WithMany()
                       .HasForeignKey(c => c.IdServicioSucursal)

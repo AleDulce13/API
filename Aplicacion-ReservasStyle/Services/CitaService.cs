@@ -142,16 +142,30 @@ namespace Aplicacion_ReservasStyle.Services
 
         public async Task Add(CitaDTO dto)
         {
+
             var empleado = await _context.Empleados
                 .FirstOrDefaultAsync(e =>
-                    e.IdEmpleado == dto.IdEmpleado &&
-                    e.Estado);
+                    e.IdEmpleado == dto.IdEmpleado);
 
             if (empleado == null)
             {
                 throw new InvalidOperationException(
-                    "El empleado seleccionado no existe o está inactivo.");
+                    $"No existe un empleado con IdEmpleado = {dto.IdEmpleado}.");
             }
+
+            if (!empleado.Estado)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado {dto.IdEmpleado} existe, pero está inactivo.");
+            }
+
+            Console.WriteLine(
+                $"EMPLEADO ENCONTRADO -> " +
+                $"IdEmpleado: {empleado.IdEmpleado}, " +
+                $"Nombre: {empleado.Nombre}, " +
+                $"Sucursal: {empleado.IdSucursal}, " +
+                $"Estado: {empleado.Estado}"
+            );
 
             var servicio = await _context.ServicioSucursal
                 .Include(item => item.Servicio)
@@ -163,7 +177,16 @@ namespace Aplicacion_ReservasStyle.Services
             if (servicio == null)
             {
                 throw new InvalidOperationException(
-                    "El servicio seleccionado no está disponible.");
+                    $"No existe el ServicioSucursal " +
+                    $"{dto.IdServicioSucursal} o está inactivo.");
+            }
+
+            if (empleado.IdSucursal != servicio.IdSucursal)
+            {
+                throw new InvalidOperationException(
+                    $"El empleado pertenece a la sucursal " +
+                    $"{empleado.IdSucursal}, pero el servicio " +
+                    $"pertenece a la sucursal {servicio.IdSucursal}.");
             }
 
             if (dto.HoraFin <= dto.HoraInicio ||
@@ -194,7 +217,7 @@ namespace Aplicacion_ReservasStyle.Services
             {
                 IdCliente = dto.IdCliente,
 
-                IdEmpleado = dto.IdEmpleado,
+                IdEmpleado = empleado.IdEmpleado,
 
                 IdServicioSucursal = dto.IdServicioSucursal,
 
@@ -214,10 +237,12 @@ namespace Aplicacion_ReservasStyle.Services
             await _logService.Crear(new LogDTO
             {
                 IdUsuario = dto.IdCliente,
+
                 Accion = "CREAR_CITA",
+
                 Descripcion =
                     $"Se creó una cita para el cliente {dto.IdCliente} " +
-                    $"con el empleado {dto.IdEmpleado}",
+                    $"con el empleado {empleado.IdEmpleado}",
 
                 TablaAfectada = "Citas",
 
@@ -227,7 +252,7 @@ namespace Aplicacion_ReservasStyle.Services
             });
 
             await TryNotifyAsync(
-                dto.IdEmpleado,
+                empleado.IdEmpleado,
                 "Nueva cita",
                 "Tienes una nueva cita asignada.",
                 cita.IdCita,
