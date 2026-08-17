@@ -41,26 +41,39 @@ namespace Aplicacion_ReservasStyle.Services
         {
             var result = await (
                 from ss in _context.ServicioSucursal
-                join s in _context.Servicios on ss.IdServicio equals s.IdServicio
-                join su in _context.Sucursales on ss.IdSucursal equals su.IdSucursal
-                join hl in _context.HorarioLocal on su.IdSucursal equals hl.IdSucursal into horarios
+                join s in _context.Servicios
+                    on ss.IdServicio equals s.IdServicio
+                join su in _context.Sucursales
+                    on ss.IdSucursal equals su.IdSucursal
+                join hl in _context.HorarioLocal
+                    on su.IdSucursal equals hl.IdSucursal into horarios
                 from hl in horarios.DefaultIfEmpty()
-                where s.Estado && ss.Estado && su.EstadoActivo
+
+                where s.Estado
+                      && ss.Estado
+                      && su.EstadoActivo
+
                 select new ServicioDetalleDTO
                 {
                     IdServicioSucursal = ss.IdServicioSucursal,
                     DuracionMinutos = s.DuracionMinutos,
                     NombreServicio = s.Nombre,
+                    Descripcion = s.Descripcion,
                     Sucursal = su.Nombre,
                     Direccion = su.Direccion,
-                    DiaSemana = hl != null ? hl.DiaSemana : "",
-                    HoraApertura = hl != null ? hl.HoraApertura.ToString() : "",
-                    HoraCierre = hl != null ? hl.HoraCierre.ToString() : "",
+                    DiaSemana = hl != null
+                        ? hl.DiaSemana
+                        : "",
+                    HoraApertura = hl != null
+                        ? hl.HoraApertura.ToString()
+                        : "",
+                    HoraCierre = hl != null
+                        ? hl.HoraCierre.ToString()
+                        : "",
                     Precio = ss.Precio,
                     Imagen = s.ImagenUrl
                 }
             ).ToListAsync();
-
             return result;
         }
 

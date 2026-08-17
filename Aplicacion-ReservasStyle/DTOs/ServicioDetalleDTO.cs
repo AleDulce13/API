@@ -11,6 +11,7 @@ namespace Aplicacion_ReservasStyle.DTOs
         public int IdServicioSucursal { get; set; }
         public int DuracionMinutos { get; set; }
         public string NombreServicio { get; set; }
+        public string? Descripcion { get; set; }
         public string Sucursal { get; set; }
         public string Direccion { get; set; }
         public string DiaSemana { get; set; }
