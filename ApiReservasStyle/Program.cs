@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // FIREBASE INITIALIZATION
