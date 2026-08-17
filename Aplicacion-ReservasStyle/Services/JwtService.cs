@@ -67,6 +67,12 @@ namespace Aplicacion_ReservasStyle.Services
                     user.IdSucursal.ToString()
                 )
             };
+  {
+            await _service.Delete(id);
+            return Ok("Empleado eliminado");
+        }
+    }
+}
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],

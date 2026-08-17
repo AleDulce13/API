@@ -11,30 +11,72 @@ namespace Aplicacion_ReservasStyle.Services
 {
     public class EmpleadoService
     {
-        private readonly IGenericRepository<Empleado> _repo;
+        private readonly IGenericRepository<Empleado> _empleadoRepo;
+        private readonly IGenericRepository<Usuario> _usuarioRepo;
         private readonly LogService _logService;
 
-        public EmpleadoService(IGenericRepository<Empleado> repo, LogService logService)
+        public EmpleadoService(
+            IGenericRepository<Empleado> empleadoRepo,
+            IGenericRepository<Usuario> usuarioRepo,
+            LogService logService)
         {
-            _repo = repo;
+            _empleadoRepo = empleadoRepo;
+            _usuarioRepo = usuarioRepo;
             _logService = logService;
         }
 
-        // GET ALL
-        public async Task<List<Empleado>> GetAll()
+        // OBTENER EMPLEADOS
+        public async Task<List<Empleado>> GetAllByUsuario(int idUsuario)
         {
-            return await _repo.GetAll();
+            var usuario = await _usuarioRepo.GetById(idUsuario);
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            if (usuario.IdSucursal == null)
+                throw new Exception("El usuario no tiene una sucursal asignada");
+
+            var empleados = await _empleadoRepo.GetAll();
+
+            return empleados
+                .Where(e => e.IdSucursal == usuario.IdSucursal)
+                .ToList();
         }
 
-        // GET BY ID
-        public async Task<Empleado> GetById(int id)
+        // OBTENER EMPLEADO POR ID
+        public async Task<Empleado> GetById(int id, int idUsuario)
         {
-            return await _repo.GetById(id);
+            var usuario = await _usuarioRepo.GetById(idUsuario);
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            var empleado = await _empleadoRepo.GetById(id);
+
+            if (empleado == null)
+                return null;
+
+            if (empleado.IdSucursal != usuario.IdSucursal)
+                return null;
+
+            return empleado;
         }
 
-        // CREATE
-        public async Task Add(EmpleadoDTO dto)
+        // CREAR EMPLEADO
+        public async Task Add(
+            EmpleadoDTO dto,
+            int idUsuario)
         {
+            var usuario = await _usuarioRepo.GetById(idUsuario);
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            if (usuario.IdSucursal == null)
+                throw new Exception(
+                    "El administrador no tiene una sucursal asignada"
+                );
+
             var empleado = new Empleado
             {
                 Nombre = dto.Nombre,
@@ -42,66 +84,104 @@ namespace Aplicacion_ReservasStyle.Services
                 Telefono = dto.Telefono,
                 Especialidad = dto.Especialidad,
                 Estado = dto.Estado,
-                IdSucursal = dto.IdSucursal,
+                IdSucursal = usuario.IdSucursal.Value,
                 FechaRegistro = DateTime.UtcNow
             };
 
-            await _repo.Add(empleado);
+            await _empleadoRepo.Add(empleado);
 
             await _logService.Crear(new LogDTO
             {
-                IdUsuario = null,
+                IdUsuario = idUsuario,
                 Accion = "CREAR_EMPLEADO",
-                Descripcion = $"Se creó el empleado {dto.Nombre} {dto.Apellido}",
+                Descripcion =
+                    $"Se creó el empleado {empleado.Nombre} {empleado.Apellido}",
                 TablaAfectada = "Empleados",
                 RegistroId = empleado.IdEmpleado,
                 Ip = null
             });
         }
 
-        // UPDATE
-        public async Task Update(int id, EmpleadoDTO dto)
+        // ACTUALIZAR EMPLEADO
+        public async Task Update(
+            int id,
+            EmpleadoDTO dto,
+            int idUsuario)
         {
-            var empleado = await _repo.GetById(id);
+            var usuario = await _usuarioRepo.GetById(idUsuario);
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            if (usuario.IdSucursal == null)
+                throw new Exception(
+                    "El administrador no tiene una sucursal asignada"
+                );
+
+            var empleado = await _empleadoRepo.GetById(id);
 
             if (empleado == null)
                 throw new Exception("Empleado no encontrado");
+
+            if (empleado.IdSucursal != usuario.IdSucursal)
+                throw new Exception(
+                    "No tienes permiso para modificar este empleado"
+                );
 
             empleado.Nombre = dto.Nombre;
             empleado.Apellido = dto.Apellido;
             empleado.Telefono = dto.Telefono;
             empleado.Especialidad = dto.Especialidad;
             empleado.Estado = dto.Estado;
-            empleado.IdSucursal = dto.IdSucursal;
+            empleado.IdSucursal = usuario.IdSucursal.Value;
 
-            await _repo.Update(empleado);
+            await _empleadoRepo.Update(empleado);
 
             await _logService.Crear(new LogDTO
             {
-                IdUsuario = null,
+                IdUsuario = idUsuario,
                 Accion = "ACTUALIZAR_EMPLEADO",
-                Descripcion = $"Se actualizó el empleado ID {id}",
+                Descripcion =
+                    $"Se actualizó el empleado ID {id}",
                 TablaAfectada = "Empleados",
                 RegistroId = id,
                 Ip = null
             });
         }
 
-        // DELETE
-        public async Task Delete(int id)
+        // ELIMINAR EMPLEADO
+        public async Task Delete(
+            int id,
+            int idUsuario)
         {
-            var empleado = await _repo.GetById(id);
+            var usuario = await _usuarioRepo.GetById(idUsuario);
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            if (usuario.IdSucursal == null)
+                throw new Exception(
+                    "El administrador no tiene una sucursal asignada"
+                );
+
+            var empleado = await _empleadoRepo.GetById(id);
 
             if (empleado == null)
                 throw new Exception("Empleado no encontrado");
 
-            await _repo.Delete(id);
+            if (empleado.IdSucursal != usuario.IdSucursal)
+                throw new Exception(
+                    "No tienes permiso para eliminar este empleado"
+                );
+
+            await _empleadoRepo.Delete(id);
 
             await _logService.Crear(new LogDTO
             {
-                IdUsuario = null,
+                IdUsuario = idUsuario,
                 Accion = "ELIMINAR_EMPLEADO",
-                Descripcion = $"Se eliminó el empleado ID {id}",
+                Descripcion =
+                    $"Se eliminó el empleado ID {id}",
                 TablaAfectada = "Empleados",
                 RegistroId = id,
                 Ip = null
