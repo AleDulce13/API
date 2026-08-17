@@ -105,8 +105,7 @@ namespace ApiReservasStyle.Controllers
                         await dto.Imagen.CopyToAsync(stream);
                     }
 
-                    imagenUrl =
-                        $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/imagenes/{fileName}";
+                    imagenUrl = $"/imagenes/{fileName}";
                 }
 
                 var servicio = new Servicio
@@ -171,7 +170,7 @@ namespace ApiReservasStyle.Controllers
                     await imagen.CopyToAsync(stream);
                 }
 
-                servicio.ImagenUrl = "/imagenes/" + fileName;
+                servicio.ImagenUrl = $"/imagenes/{fileName}";
             }
 
             await _context.SaveChangesAsync();
