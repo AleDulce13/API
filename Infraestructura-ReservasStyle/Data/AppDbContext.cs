@@ -99,12 +99,6 @@ namespace Infraestructura_ReservasStyle.Data
                     .HasForeignKey(e => e.IdSucursal)
                     .HasConstraintName("fk_empleado_sucursal")
                     .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.Usuario)
-                    .WithMany()
-                    .HasForeignKey(e => e.IdUsuario)
-                    .HasConstraintName("fk_empleado_usuario")
-                    .OnDelete(DeleteBehavior.Restrict);
             });
 
 
@@ -164,7 +158,7 @@ namespace Infraestructura_ReservasStyle.Data
             {
                 entity.ToTable("Citas");
 
-                entity.HasKey(x => x.IdCita);
+                entity.HasKey(c => c.IdCita);
 
                 entity.HasOne(c => c.Empleado)
                     .WithMany(e => e.Citas)

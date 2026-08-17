@@ -19,8 +19,6 @@ namespace Dominio_ReservasStyle.Entities
 
         public int IdSucursal { get; set; }
 
-        public int IdUsuario { get; set; }
-
         public bool Estado { get; set; }
 
         public string? Especialidad { get; set; }
@@ -28,8 +26,6 @@ namespace Dominio_ReservasStyle.Entities
         public DateTime FechaRegistro { get; set; }
 
         public Sucursal Sucursal { get; set; }
-
-        public Usuario Usuario { get; set; }
 
         public ICollection<Cita> Citas { get; set; }
     }
