@@ -24,7 +24,9 @@ namespace Aplicacion_ReservasStyle.Services
         public string GenerateToken(Usuario user)
         {
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["Jwt:Key"])
+                Encoding.UTF8.GetBytes(
+                    _config["Jwt:Key"]
+                )
             );
 
             var creds = new SigningCredentials(
@@ -32,7 +34,6 @@ namespace Aplicacion_ReservasStyle.Services
                 SecurityAlgorithms.HmacSha256
             );
 
-            // ROLES
             string role = user.IdRol switch
             {
                 1 => "Admin",
@@ -49,7 +50,7 @@ namespace Aplicacion_ReservasStyle.Services
                     user.IdUsuario.ToString()
                 ),
 
-                // CORREO
+                // EMAIL
                 new Claim(
                     ClaimTypes.Email,
                     user.Email
@@ -61,18 +62,12 @@ namespace Aplicacion_ReservasStyle.Services
                     role
                 ),
 
-                // ID DE SUCURSAL
+                // ID DE LA SUCURSAL
                 new Claim(
                     "idSucursal",
                     user.IdSucursal.ToString()
                 )
             };
-  {
-            await _service.Delete(id);
-            return Ok("Empleado eliminado");
-        }
-    }
-}
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
