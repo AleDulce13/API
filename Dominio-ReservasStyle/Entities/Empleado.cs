@@ -23,7 +23,10 @@ namespace Dominio_ReservasStyle.Entities
 
         public bool Estado { get; set; }
 
-        // Relaciones
+        public string? Especialidad { get; set; }
+
+        public DateTime FechaRegistro { get; set; }
+
         public Sucursal Sucursal { get; set; }
 
         public Usuario Usuario { get; set; }
